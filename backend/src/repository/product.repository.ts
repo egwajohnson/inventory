@@ -8,6 +8,9 @@ export class ProductRepository {
     if (!product.name || !product.price || !product.quantity) {
       throw new Error("Product name, price, and quantity are required");
     }
+    if(!product.file){
+      throw new Error("image not found")
+    }
     
 
     const response = await ProductModel.create({...product, createdAt: new Date(), updatedAt: new Date() });

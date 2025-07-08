@@ -1,7 +1,7 @@
 import express from 'express';
 
 export interface IAddUser{
-   title: string;
+  title: string;
   firstName: string;
   lastName: string;
   username: string;
@@ -17,6 +17,5 @@ export interface IAddUser{
     state: string;
     postcode: number;
   };
-  picture: string;
   position: string;
 }

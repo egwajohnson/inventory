@@ -9,8 +9,11 @@ export class UserRepository {
             throw new Error("User data is required");   
         }
 
+        //  if (!path) throw new Error("No file found");
+
         const response = await UserModel.create({
             ...user,
+            //  filePath: path
         });
 
         return response;
