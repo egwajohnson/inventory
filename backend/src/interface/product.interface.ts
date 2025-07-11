@@ -1,9 +1,8 @@
 import Express from "express";
 
 export interface product {
-  id: string;
-  name: string;
-  price: number;
+  productName: string;
+  productPrice: number;
   quantity: number;
   category?: string; // Optional field
   createdAt?: Date; // Optional field for creation timestamp

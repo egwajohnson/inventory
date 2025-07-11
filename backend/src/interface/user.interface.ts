@@ -10,7 +10,6 @@ export interface IAddUser{
   gender: string;
   DOB: Date;
   phoneNumber: string;
-  id: number;
   address: {
     street: string;
     city: string;

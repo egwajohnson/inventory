@@ -5,9 +5,6 @@ import { IAddUser } from "../interface/user.interface";
 
 export class UserRepository {
     static async createUser(user:IAddUser){
-        if(!user){
-            throw new Error("User data is required");   
-        }
 
         //  if (!path) throw new Error("No file found");
 
@@ -15,6 +12,17 @@ export class UserRepository {
             ...user,
             //  filePath: path
         });
+
+        return response;
+
+    }
+
+    static async loginUser(email: string): Promise<any>{
+         if (!email) {
+    throw new Error("Email and password are required");
+  }
+
+        const response = await UserModel.findOne({email});
 
         return response;
 

@@ -5,7 +5,7 @@ import { ProductModel } from "../models/product.model";
 
 export class ProductRepository {
   static async addProduct(product: product) {
-    if (!product.name || !product.price || !product.quantity) {
+    if (!product.productName || !product.productPrice || !product.quantity) {
       throw new Error("Product name, price, and quantity are required");
     }
     if(!product.file){

@@ -21,6 +21,7 @@
     "bcrypt": "^6.0.0",
     "express": "^5.1.0",
     "exprss": "^0.0.1-security",
+    "joi": "^17.13.3",
     "mongoose": "^8.16.1",
     "multer": "^2.0.1",
     "schema": "^0.2.1"
