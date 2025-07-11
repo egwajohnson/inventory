@@ -8,16 +8,27 @@ export class ProductRepository {
     if (!product.productName || !product.productPrice || !product.quantity) {
       throw new Error("Product name, price, and quantity are required");
     }
-    if(!product.file){
-      throw new Error("image not found")
-    }
+    // if(!product.file){
+    //   throw new Error("image not found")
+    // }
     
+    
+
 
     const response = await ProductModel.create({...product, createdAt: new Date(), updatedAt: new Date() });
 
     return response;
 
 
+  }
+
+  static async findByName(productName:string): Promise<any>{
+
+    const response = await ProductModel.findOne({productName})
+    // if(response){
+    //   throw new Error("product exist")
+    // }
+    return response
   }
   
 

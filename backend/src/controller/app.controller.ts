@@ -24,36 +24,33 @@ export class AppController{
             const response = await AppService.loginUser(email , password);
             res.status(200).json(response);
         } catch (error:any) {
-            res.status(404).json({success: false, payload: error.message} )
+            res.status(404).json({success: false, payload: error.message})
         }
     }
+
+
+    // product section
 
     static async createProduct(req: Request, res: Response) {
-        try {
-              const product = req.body;
-              const path = req.file?.path;
+  try {
+    const product = req.body;
 
-              if (!path) throw new Error("No file found");
+    // Handle file upload (e.g. product image)
+    // const filePath = req.file?.path;
+    // if (!filePath) {
+    //   return res.status(400).json({ error: "Product image is missing" });
+    // }
 
-        if (!req.file) {
-            return res.status(400).json({ error: "Product image is missing" });
-        }
+    // Attach image path to product data
+    // product.image = filePath;
 
-        console.log(req.file);
-        
-             product.image = req.file;
-              
 
-             if (!product.name || !product.price || !product.quantity) {
-                 throw new Error("Product name, price, and quantity are required");
-             }
-             
+    const response = await AppService.createProduct(product);
+    res.status(201).json(response);
+  } catch (error: any) {
+    res.status(400).json({success: false, payload: error.message});
+  }
+}
 
-            const response = await AppService.createProduct(product);
-             res.status(201).json(response);
-        } catch (error: any) {
-             res.status(400).json({ error: error.message });
-        }
-    }
 
 }
