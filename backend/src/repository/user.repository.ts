@@ -17,6 +17,12 @@ export class UserRepository {
 
     }
 
+    static async findUserByEmail(email: string){
+        const response = await UserModel.findOne({email}).select("-password")
+        return response;
+
+    }
+
     static async loginUser(email: string): Promise<any>{
          if (!email) {
     throw new Error("Email and password are required");

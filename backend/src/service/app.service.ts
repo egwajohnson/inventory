@@ -27,7 +27,7 @@ export class AppService {
       throw new Error("Password is required");
     }
 
-    const existingUser = await UserRepository.loginUser(email);
+    const existingUser = await UserRepository.findUserByEmail(user.email);
     if (existingUser) {
       throw new Error("User with this email already exists");
     }
@@ -96,11 +96,10 @@ export class AppService {
       throw new Error("Quantity must be a non-negative number");
     }
 
-     const exist = await ProductRepository.findByName(product.productName); // You must create this method
-
-    if(exist) {
-    throw new Error("Product already exists");
-   }
+    const existingProduct = await ProductRepository.findByName(productName); // custom method needed
+  if (existingProduct) {
+    throw new Error("Product already exists with this name");
+  }
 
     const response = await ProductRepository.addProduct({
       ...product,
@@ -108,4 +107,29 @@ export class AppService {
 
     return response;
   }
+
+  static async deleteProduct(productName:string){
+   if(!productName){
+      throw new Error("product name is required")
+   }
+
+   const product = ProductRepository.deleteProduct(productName)
+   if(!product){
+    throw new Error("product does not exist")
+   }
+   return("product deleted successful");
+  }
+
+  static async findProductByName(productName:string){
+  if(!productName){
+    throw new Error("product name is requred")
+  }
+
+  const product = ProductRepository.findByName(productName)
+  if(!product){
+    throw new Error("product does not exist")
+  }
+  return product;
+  }
+
 }

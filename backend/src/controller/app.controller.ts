@@ -52,5 +52,30 @@ export class AppController{
   }
 }
 
+static async deleteProduct(req:Request, res:Response){
+    try {
+        const productName = req.body;
+
+        const response = await AppService.deleteProduct(productName);
+        res.status(201).json(response);
+        
+    } catch (error: any) {
+         res.status(404).json({success: false, payload: error.message})
+    }
+
+}
+
+static async findProductByName(req:Request, res:Response){
+    try {
+        const {productName} = req.body;
+
+        const response = await AppService.findProductByName(productName);
+        res.status(201).json(response);
+    } catch (error: any) {
+        res.status(404).json({success: false, payload:error.message})
+    }
+
+}
+
 
 }

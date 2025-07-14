@@ -1,6 +1,7 @@
 import express from "express";
 import { product } from "../interface/product.interface";
 import { ProductModel } from "../models/product.model";
+import { Types } from "mongoose";
 
 
 export class ProductRepository {
@@ -22,14 +23,19 @@ export class ProductRepository {
 
   }
 
-  static async findByName(productName:string): Promise<any>{
+  static async findByName(productName: string): Promise<any>{
 
     const response = await ProductModel.findOne({productName})
-    // if(response){
-    //   throw new Error("product exist")
-    // }
     return response
   }
+
+  static  async deleteProduct(productName:string){
+    const response = await ProductModel.findOneAndDelete(productName as any)
+    return response
+
+  }
+
+ 
   
 
 }
