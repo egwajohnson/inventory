@@ -22,6 +22,10 @@ export class ProductRepository {
 
 
   }
+  static async getproduct(){
+    const response = await ProductModel.find( {}).sort({ createdAt: -1 }).select("-__v");
+   return response;
+  }
 
   static async findByName(productName: string): Promise<any>{
 
@@ -29,9 +33,9 @@ export class ProductRepository {
     return response
   }
 
-  static  async deleteProduct(productName:string){
-    const response = await ProductModel.findOneAndDelete(productName as any)
-    return response
+  static  async deleteProduct(id: Types.ObjectId) {
+    const response = await ProductModel.findByIdAndDelete({ _id: id });
+    return response;
 
   }
 

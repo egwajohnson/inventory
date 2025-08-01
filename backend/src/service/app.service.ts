@@ -4,8 +4,10 @@ import { UserRepository } from "../repository/user.repository";
 import { ProductRepository } from "../repository/product.repository";
 import { IAddUser } from "../interface/user.interface";
 import { product } from "../interface/product.interface";
+import mongoose from "mongoose";
 import { UserModel } from "../models/user.model";
-import { errorMonitor } from "events";
+import { ProductModel } from "../models/product.model";
+import { Types } from "mongoose";
 
 export class AppService {
   static async createUser(user: IAddUser) {
@@ -96,9 +98,9 @@ export class AppService {
       throw new Error("Quantity must be a non-negative number");
     }
 
-    const existingProduct = await ProductRepository.findByName(productName); // custom method needed
-  if (existingProduct) {
-    throw new Error("Product already exists with this name");
+    const existingProduct = await ProductRepository.findByName(productName);
+    if (existingProduct) {
+      throw new Error("Product already exists with this name");
   }
 
     const response = await ProductRepository.addProduct({
@@ -108,12 +110,21 @@ export class AppService {
     return response;
   }
 
-  static async deleteProduct(productName:string){
-   if(!productName){
-      throw new Error("product name is required")
-   }
+static async getProducts() {
+    const response = await ProductRepository.getproduct();
+    if (!response || response.length === 0) {
+      throw new Error("No products found");
+    } 
+    return response;
+  }
 
-   const product = ProductRepository.deleteProduct(productName)
+  static async deleteProduct(id: Types.ObjectId) {
+    if (!id) {
+      throw new Error("Product ID is required");
+    }
+
+   const product = await ProductRepository.deleteProduct(id);
+   
    if(!product){
     throw new Error("product does not exist")
    }

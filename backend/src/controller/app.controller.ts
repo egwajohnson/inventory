@@ -52,11 +52,20 @@ export class AppController{
   }
 }
 
+static async getProducts(req: Request, res: Response) {
+    try {
+        const response = await AppService.getProducts();
+        res.status(200).json(response);
+    } catch (error: any) {
+        res.status(404).json({ success: false, payload: error.message });
+    }
+}
+
 static async deleteProduct(req:Request, res:Response){
     try {
-        const productName = req.body;
+        const {id}  = req.body;
 
-        const response = await AppService.deleteProduct(productName);
+        const response = await AppService.deleteProduct(id as any);
         res.status(201).json(response);
         
     } catch (error: any) {

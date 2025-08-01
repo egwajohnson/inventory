@@ -15,5 +15,6 @@ router.post("/product", AppController.createProduct);
 //router.post("/product",upload.single("picture"), AppController.createProduct as any);
 router.delete("/productName",AppController.deleteProduct);
 router.get("/productName", AppController.findProductByName)
+router.get("/products/list", AppController.getProducts);
 
 export default router;
