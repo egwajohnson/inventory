@@ -86,5 +86,17 @@ static async findProductByName(req:Request, res:Response){
 
 }
 
+static async updateProduct(req:Request, res:Response){
+    try {
+        const {productName, productPrice} = req.body;
+
+        const response = await AppService.updateProduct(productName, productPrice);
+        res.status(200).json(response);
+        
+    } catch (error:any) {
+        res.status(404).json({success: false, payload:error.message})
+    }
+}
+
 
 }

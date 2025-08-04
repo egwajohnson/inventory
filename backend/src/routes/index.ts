@@ -16,5 +16,6 @@ router.post("/product", AppController.createProduct);
 router.delete("/productName",AppController.deleteProduct);
 router.get("/productName", AppController.findProductByName)
 router.get("/products/list", AppController.getProducts);
+router.post("/product/update", AppController.updateProduct);
 
 export default router;

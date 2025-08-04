@@ -143,4 +143,14 @@ static async getProducts() {
   return product;
   }
 
+  static async updateProduct(productName:string, productPrice:string){
+    if(!productPrice){
+      throw new Error("product price is needed to update")
+    }
+
+    const productupdat = await ProductRepository.updateProduct(productName, productPrice);
+
+    return productupdat;
+
+  }
 }
