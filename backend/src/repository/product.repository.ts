@@ -1,6 +1,8 @@
 import express from "express";
 import { product } from "../interface/product.interface";
 import { ProductModel } from "../models/product.model";
+import { SaleModel } from "../models/sale.model";
+import { ISale } from "../interface/product.interface";
 import { Types } from "mongoose";
 
 
@@ -25,6 +27,13 @@ export class ProductRepository {
     return response
   }
 
+  static async getprice(price: number){
+
+    const response = await ProductModel.findOne({productPrice:price})
+    return response
+
+  }
+
   static  async deleteProduct(id: Types.ObjectId) {
     const response = await ProductModel.findByIdAndDelete({ _id: id });
     return response;
@@ -33,8 +42,46 @@ export class ProductRepository {
 
   static async updateProduct( productName:string, productPrice:string) {
 
-    const response = await ProductModel.findOneAndUpdate( { productName} , {productPrice }, { new: true });
+    const response = await ProductModel.findOneAndUpdate( { productName} , {productPrice }, { new: true }).select("-__v");
     return response;   
+  }
+  static async updatequantity(productName: string, quantity: number) {
+    const response = await ProductModel.findOneAndUpdate(
+      { productName },
+      { quantity },
+      { new: true }
+    ).select("-__v");
+    return response;
+  }
+
+  static async saleProduct(productId: Types.ObjectId, data: { productName: string, productPrice: number, quantity: number, totalPrice: number }) {
+
+    if (
+  !productId ||
+  !data.productName ||
+  !data.productPrice ||
+  typeof data.quantity !== "number" ||
+  typeof data.totalPrice !== "number"
+) {
+  throw new Error("Product name, product price, quantity, and total price are required and must be valid");
+}
+
+    const response = await SaleModel.create({
+      productId,
+      ...data,
+      timestamp: new Date(),  
+    });
+
+    return response;
+  }
+
+  static async producthistory(userId: Types.ObjectId, action: string) {
+    const response = await ProductModel.create({
+      userId,
+      action,
+      timestamp: new Date(),
+    });
+    return response;
   }
 
 }

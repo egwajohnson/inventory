@@ -17,6 +17,16 @@ export class AppController{
         }
     }
 
+    static async findUserById(req: Request, res: Response) {
+        try {
+            const { id } = req.params;
+
+            const response = await AppService.findUserById(id as any);
+            res.status(200).json(response);
+        } catch (error: any) {
+            res.status(404).json({ success: false, payload: error.message });
+        }
+    }
 
     static async loginUser(req:Request, res:Response){
         try {
@@ -98,5 +108,27 @@ static async updateProduct(req:Request, res:Response){
     }
 }
 
+static async updateProductQuantity(req: Request, res: Response) {
+    try {
+      const { productName, quantity } = req.body;
 
+      const response = await AppService.updateProductQuantity(productName, quantity);
+      res.status(200).json(response);
+    } catch (error: any) {
+      res.status(404).json({ success: false, payload: error.message });
+    } 
+}
+
+static async saleProduct(req: Request, res: Response) {
+    try {
+      const {productId,productName,productPrice, quantity, totalPrice } = req.body;
+
+      
+
+      const response = await AppService.saleProduct(productId, { productName, productPrice, quantity, totalPrice });
+      res.status(200).json(response);
+    } catch (error: any) {
+      res.status(404).json({ success: false, payload: error.message });
+    } 
+}
 }

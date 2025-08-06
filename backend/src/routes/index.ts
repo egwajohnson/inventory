@@ -9,6 +9,7 @@ import {loginSchema,userschema, productschema} from "../validation/user.schemal"
 const router = express.Router();
 
 router.post("/user",validator(userschema), AppController.createUser);
+router.get("/user/:id", AppController.findUserById);
 //router.post("/user",upload.single("image"), AppController.createUser);
 router.post("/login", AppController.loginUser)
 router.post("/product", AppController.createProduct);
@@ -17,5 +18,7 @@ router.delete("/productName",AppController.deleteProduct);
 router.get("/productName", AppController.findProductByName)
 router.get("/products/list", AppController.getProducts);
 router.post("/product/update", AppController.updateProduct);
+router.patch("/product/update/quantity", AppController.updateProductQuantity);
+router.post("/product/sale", AppController.saleProduct);
 
 export default router;

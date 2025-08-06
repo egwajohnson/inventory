@@ -1,6 +1,7 @@
 import express from "express";
 import { UserModel } from "../models/user.model";
 import { IAddUser } from "../interface/user.interface";
+import { Types } from "mongoose";
 
 
 export class UserRepository {
@@ -15,6 +16,15 @@ export class UserRepository {
 
         return response;
 
+    }
+
+    static async findUserById(id: Types.ObjectId) {
+        if (!id) {
+            throw new Error("User ID is required");
+        }
+
+        const response = await UserModel.findById(id).select("-password");
+        return response;
     }
 
     static async findUserByEmail(email: string){

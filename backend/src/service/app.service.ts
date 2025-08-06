@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import { UserRepository } from "../repository/user.repository";
 import { ProductRepository } from "../repository/product.repository";
 import { IAddUser } from "../interface/user.interface";
+import { ISale } from "../interface/product.interface";
 import { product } from "../interface/product.interface";
 import mongoose from "mongoose";
 import { UserModel } from "../models/user.model";
@@ -28,10 +29,11 @@ export class AppService {
     if (!password) {
       throw new Error("Password is required");
     }
+  
 
     const existingUser = await UserRepository.findUserByEmail(user.email);
     if (existingUser) {
-      throw new Error("User with this email already exists");
+      throw new Error("Cannot create: User with this email already exists");
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -47,6 +49,20 @@ export class AppService {
 
     return response;
   }
+  
+  static async findUserById(id: Types.ObjectId): Promise<any> {
+    if (!id) {
+      throw new Error("User ID is required2");
+    }
+
+    const response = await UserRepository.findUserById(id);
+    if (!response) {
+      throw new Error("User not found");
+    }
+
+    return response;
+  }
+
 
   static async loginUser(email: string, password: string): Promise<any> {
     if (!email || !password) {
@@ -153,4 +169,26 @@ static async getProducts() {
     return productupdat;
 
   }
-}
+  static async updateProductQuantity(productName: string, quantity: number) {
+    if (!productName || quantity === undefined) {
+      throw new Error("Product name and quantity are required");
+    }
+
+    const productupdat = await ProductRepository.updatequantity(productName, quantity);
+
+    return productupdat;
+  }
+  static async saleProduct( productId:string | Types.ObjectId, data: { productName: string, productPrice: number, quantity: number, totalPrice: number }) {
+    if (!data.productName || !data.productPrice || data.quantity === undefined || data.totalPrice === undefined) {
+      throw new Error("Product name, product price, quantity, and total price are required");
+    }
+
+    
+     const convertedProductId = typeof productId === "string" ? new Types.ObjectId(productId) : productId;
+
+
+    const response = await ProductRepository.saleProduct(convertedProductId, { ...data });
+    return response;
+  }
+
+  }
