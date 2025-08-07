@@ -20,6 +20,5 @@ router.get("/products/list", AppController.getProducts);
 router.post("/product/update", AppController.updateProduct);
 router.patch("/product/update/quantity", AppController.updateProductQuantity);
 router.post("/product/sale", AppController.saleProduct);
-router.get("/product/:productId/sale", AppController.saleReciept);
 
 export default router;

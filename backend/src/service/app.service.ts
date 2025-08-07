@@ -181,50 +181,7 @@ export class AppService {
 
     return productupdat;
   }
-  static async saleProduct(
-    productId: string | Types.ObjectId,
-    data: {
-      productName: string;
-      productPrice: number;
-      quantity: number;
-      totalPrice: number;
-    }
-  ) {
-    if (
-      !data.productName ||
-      !data.productPrice ||
-      data.quantity === undefined ||
-      data.totalPrice === undefined
-    ) {
-      throw new Error(
-        "Product name, product price, quantity, and total price are required"
-      );
-    }
-
-    const convertedProductId =
-      typeof productId === "string" ? new Types.ObjectId(productId) : productId;
-
-    const response = await ProductRepository.saleProduct(convertedProductId, {
-      ...data,
-    });
-    if (response) {
-      const createHistory = await ProductRepository.createsaleHistory(
-        convertedProductId,
-        data.productName,
-        data.productPrice,
-        data.quantity,
-        data.totalPrice
-      );
-      return {
-
-        convertedProductId,
-        ...data
-      }
-    }
-    return response;
-  }
-
- static async saleReciept(
+ static async saleProduct(
   productId: string | Types.ObjectId,
   data: {
     productName: string;
@@ -242,17 +199,21 @@ export class AppService {
   const convertedProductId =
     typeof productId === "string" ? new Types.ObjectId(productId) : productId;
 
-  await ProductRepository.createsaleHistory(
-    convertedProductId,
-    productName,
-    quantity,
-    productPrice,
-    totalPrice
-  );
-
+  // Update product (e.g., reduce stock or mark as sold)
   const updatedProduct = await ProductRepository.saleProduct(convertedProductId, data);
 
-  // Return a receipt object
+  if (updatedProduct) {
+    // Save history if product update succeeded
+    await ProductRepository.createsaleHistory(
+      convertedProductId,
+      productName,
+      productPrice,
+      quantity,
+      totalPrice
+    );
+  }
+
+  // Return receipt object
   return {
     receipt: {
       productId: convertedProductId.toString(),
@@ -266,5 +227,8 @@ export class AppService {
     updatedProduct,
   };
 }
+
+
+
 
 }
