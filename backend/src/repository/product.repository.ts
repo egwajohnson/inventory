@@ -4,6 +4,7 @@ import { ProductModel } from "../models/product.model";
 import { SaleModel } from "../models/sale.model";
 import { ISale } from "../interface/product.interface";
 import { Types } from "mongoose";
+import { HistoryModel } from "../models/history.model";
 
 
 export class ProductRepository {
@@ -70,9 +71,23 @@ export class ProductRepository {
       productId,
       ...data,
       timestamp: new Date(),  
-    });
+    })
 
     return response;
+  }
+
+  static async createsaleHistory(productId:Types.ObjectId, producName: string, quantity: any, productPrice: number,  totalPrice:number){
+
+     const total = quantity * productPrice;
+
+    const response = await HistoryModel.create({
+      productId,
+      producName,
+      productPrice,
+      quantity,
+      totalPrice:total
+    })
+
   }
 
   static async producthistory(userId: Types.ObjectId, action: string) {

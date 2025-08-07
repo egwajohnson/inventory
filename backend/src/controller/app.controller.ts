@@ -131,4 +131,21 @@ static async saleProduct(req: Request, res: Response) {
       res.status(404).json({ success: false, payload: error.message });
     } 
 }
+
+static async saleReciept(req:Request, res:Response){
+    try {
+        const { productId } = req.params; 
+        const { productName,productPrice,quantity,totalPrice} = req.body;
+        const response = await AppService.saleReciept( productId, {
+      productName,
+      productPrice,
+      quantity,
+      totalPrice,
+    });
+        res.status(200).json(response)
+    } catch (error:any) {
+        res.status(400).json({success:false, payload:error.message})
+    }
+
+}
 }
