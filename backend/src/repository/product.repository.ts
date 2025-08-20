@@ -2,13 +2,15 @@ import express from "express";
 import { product } from "../interface/product.interface";
 import { ProductModel } from "../models/product.model";
 import { SaleModel } from "../models/sale.model";
-import { ISale } from "../interface/product.interface";
 import { Types } from "mongoose";
 import { HistoryModel } from "../models/history.model";
-
+import { productschema } from "../validation/product.schemal";
 
 export class ProductRepository {
   static async addProduct(product: product) {
+
+    const valid = productschema.validate(product);
+
     if (!product.productName || !product.productPrice || !product.quantity) {
       throw new Error("Product name, price, and quantity are required");
     }

@@ -26,11 +26,4 @@ export const userschema = Joi.object({
 
 });
 
-export const productschema = Joi.object({
-    productName: Joi.string().required(),
-    productPrice: Joi.number().required(),
-    quantity: Joi.number().required(),
-    categories:Joi.string(),
-    file: Joi.string(),
-})
 

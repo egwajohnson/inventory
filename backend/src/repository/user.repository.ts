@@ -1,11 +1,14 @@
 import express from "express";
 import { UserModel } from "../models/user.model";
 import { IAddUser } from "../interface/user.interface";
+import { userschema } from "../validation/user.schemal";
 import { Types } from "mongoose";
 
 
 export class UserRepository {
     static async createUser(user:IAddUser){
+
+       const isvalid = userschema.validate(user);
 
         //  if (!path) throw new Error("No file found");
 
