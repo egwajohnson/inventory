@@ -31,8 +31,12 @@ export class AppController{
     static async loginUser(req:Request, res:Response){
         try {
             const {email, password} = req.body;
-            const response = await AppService.loginUser(email , password);
-            res.status(200).json(response);
+              if (email === 'admin@example.com' && password === '123456') {
+                const response = await AppService.loginUser(email , password);
+                res.status(200).json(response);
+              } else {
+                res.status(401).json({ success: false, payload: "Invalid credentials" });
+              }
         } catch (error:any) {
             res.status(404).json({success: false, payload: error.message})
         }
