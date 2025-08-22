@@ -7,5 +7,4 @@ export const productschema = Joi.object({
     categories:Joi.string().trim().optional(),
     file: Joi.string().optional(),
 })
-
-
+ 

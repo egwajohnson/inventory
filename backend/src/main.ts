@@ -9,7 +9,7 @@ const port = 5000;
 
 app.use(express.json());
 
-// app.use(logger);
+app.use(logger);
 
 app.use('/api', router);
 

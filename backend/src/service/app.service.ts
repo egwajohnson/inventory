@@ -3,11 +3,10 @@ import bcrypt from "bcrypt";
 import { UserRepository } from "../repository/user.repository";
 import { ProductRepository } from "../repository/product.repository";
 import { IAddUser } from "../interface/user.interface";
-import { ISale } from "../interface/product.interface";
 import { product } from "../interface/product.interface";
-import mongoose from "mongoose";
-import { UserModel } from "../models/user.model";
 import { ProductModel } from "../models/product.model";
+import {JWT_SECRET, JWT_EXP} from "../config/system.variable";
+import jwt from "jsonwebtoken";
 import { Types } from "mongoose";
 
 export class AppService {
@@ -81,6 +80,19 @@ export class AppService {
     if (!isPasswordValid) {
       throw new Error("Invalid email or password");
     }
+     const payload = {
+      userId: user._id,
+    };
+
+    //console.log("JWT_SECRET:", JWT_SECRET);
+
+    let jwttoken = jwt.sign(payload, JWT_SECRET, {
+      expiresIn: JWT_EXP,
+    } as any);
+
+    if (!jwttoken) throw new Error("Unable to login");
+
+    console.log("JWT Token:", jwttoken);
 
     return {
       message: `Successful login. Welcome ${user.firstName}`,
@@ -192,12 +204,30 @@ export class AppService {
 ) {
   const { productName, productPrice, quantity, totalPrice } = data;
 
+  const quantities = await ProductModel.findOne({quantity:quantity});
+
+  if(data.productPrice <= 0 || data.quantity <= 0 || data.totalPrice <= 0) {
+    throw new Error("Product price, quantity, and total price must be positive numbers");
+  }
+
   if (!productName || !productPrice || quantity === undefined || totalPrice === undefined) {
     throw new Error("Product name, product price, quantity, and total price are required");
   }
 
+  
+
   const convertedProductId =
     typeof productId === "string" ? new Types.ObjectId(productId) : productId;
+
+    const product = await ProductModel.findById(convertedProductId);
+
+  if (!product) {
+    throw new Error("Product not found");
+  }
+
+    if (product.quantity < quantity) {
+    throw new Error("Insufficient quantity available for sale");
+  }
 
   // Update product (e.g., reduce stock or mark as sold)
   const updatedProduct = await ProductRepository.saleProduct(convertedProductId, data);
@@ -224,7 +254,7 @@ export class AppService {
       date: new Date().toISOString(),
     },
     message: "Sale completed successfully",
-    updatedProduct,
+   //  updatedProduct,
   };
 }
 
