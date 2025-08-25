@@ -9,10 +9,12 @@ import {validator} from "../middleware/validate.middleware";
 const router = express.Router();
 
 router.post("/user", AppController.createUser);
+router.get("/user/get" , AppController.getUsers);
+router.delete("/user/delete/:id", AppController.deleteUser);
 // router.post("/user",validator(userschema), AppController.createUser);
 router.get("/user/:id", AppController.findUserById);
 //router.post("/user",upload.single("image"), AppController.createUser);
-router.post("/login", AppController.loginUser)
+router.post("/login", AppController.loginUser as any)
 router.post("/product", AppController.createProduct);
 //router.post("/product",upload.single("picture"), AppController.createProduct as any);
 router.delete("/productName",AppController.deleteProduct);

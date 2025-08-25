@@ -47,4 +47,18 @@ export class UserRepository {
 
     }
 
+    static async getUsers(){
+        const response = await UserModel.find().select("-password -__v").sort({ createdAt: -1 });
+        return response;
+    }
+
+    static async deleteUser(id: Types.ObjectId){
+        if (!id) {
+            throw new Error("User ID is required");
+        }
+
+        const response = await UserModel.findByIdAndDelete(id).select("-password -__v").sort({ createdAt: -1 });
+        return response;
+    }
+
 }

@@ -6,6 +6,8 @@ import { IAddUser } from "../interface/user.interface";
 import { product } from "../interface/product.interface";
 import { ProductModel } from "../models/product.model";
 import {JWT_SECRET, JWT_EXP} from "../config/system.variable";
+import { userschema } from "../validation/user.schemal";
+import { productschema } from "../validation/product.schemal";
 import jwt from "jsonwebtoken";
 import { Types } from "mongoose";
 
@@ -13,6 +15,11 @@ export class AppService {
   static async createUser(user: IAddUser) {
     if (!user) {
       throw new Error("User data is required");
+    }
+
+    const { error } = userschema.validate(user);
+    if (error) {
+      throw new Error(`Validation error: ${error.details[0].message}`);
     }
 
     const { email, password } = user;
@@ -43,14 +50,23 @@ export class AppService {
 
     const response = await UserRepository.createUser(newUser);
 
-    console.log("User created successfully:", response);
+    //console.log("User created successfully:", response);
 
     return response;
   }
 
+  static async getUsers() {
+    const response = await UserRepository.getUsers();
+    if (!response || response.length === 0) {
+      throw new Error("No users found");
+    }
+    return response;
+
+  }
+
   static async findUserById(id: Types.ObjectId): Promise<any> {
     if (!id) {
-      throw new Error("User ID is required2");
+      throw new Error("User ID is required");
     }
 
     const response = await UserRepository.findUserById(id);
@@ -61,9 +77,26 @@ export class AppService {
     return response;
   }
 
+  static async deleteUser(id: Types.ObjectId) {
+    if (!id) {
+      throw new Error("User ID is required");
+    }
+
+    const response = await UserRepository.deleteUser(id);
+    if (!response) {
+      throw new Error("User not found");
+    }
+
+    return response;
+  }
+
   static async loginUser(email: string, password: string): Promise<any> {
     if (!email || !password) {
       throw new Error("Email and password are required");
+    }
+
+    if (!email.includes("@")) {
+      throw new Error("Invalid email format");
     }
 
     const user = await UserRepository.loginUser(email);
@@ -84,7 +117,6 @@ export class AppService {
       userId: user._id,
     };
 
-    //console.log("JWT_SECRET:", JWT_SECRET);
 
     let jwttoken = jwt.sign(payload, JWT_SECRET, {
       expiresIn: JWT_EXP,
@@ -99,6 +131,7 @@ export class AppService {
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
+      token: jwttoken,
     };
   }
 
@@ -107,6 +140,10 @@ export class AppService {
   static async createProduct(product: product) {
     if (!product) {
       throw new Error("Product data is required");
+    }
+    const { error } = productschema.validate(product);
+    if (error) {
+      throw new Error(`Validation error: ${error.details[0].message}`);
     }
 
     const { productName, productPrice, quantity } = product;

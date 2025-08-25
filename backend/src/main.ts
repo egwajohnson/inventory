@@ -1,11 +1,11 @@
  import express from 'express';
 import { mongoConnection } from "./config/db.connection";
-import { logger } from "./middleware/logger.middleware"
+import { logger } from "./middleware/logger.middleware";
+import cors from 'cors';
 import router from './routes/index';
 
 
 const app = express();
-const cors = require('cors');
 app.use(cors());
 
 
