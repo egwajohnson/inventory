@@ -7,8 +7,9 @@ export interface IAddUser{
   firstName: string;
   lastName: string;
   username: string;
-  password: string;
   email: string;
+  password: string;
+  otp: string;
   gender: string;
   DOB: Date;
   phoneNumber: string;

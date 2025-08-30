@@ -4,6 +4,16 @@ import { Request, Response } from "express";
 import { get } from "mongoose";
 
 export class AppController {
+   static async preRegister(req: Request, res: Response) {
+     try {
+       const user = req.body;
+       const response = await AppService.preRegister(user);
+       res.status(201).json(response);
+     } catch (error: any) {
+       res.status(400).json({ success: false, payload: error.message });
+     }
+   }
+
   static async createUser(req: Request, res: Response) {
     try {
       //    const path = req.file?.path;
@@ -66,6 +76,7 @@ export class AppController {
       return res.status(404).json({ success: false, payload: error.message });
     }
   }
+  
 
   // product section
 

@@ -21,11 +21,20 @@ function Login() {
         body: JSON.stringify({ email, password }),
       });
 
-      const result = await response.json();
+      //const result = await response.json();
+      let result;
+  try {
+    result = await response.text();
+  } catch {
+    throw new Error("Server returned invalid JSON");
+  }
 
       if (!response.ok) {
-        throw new Error(result.message || "Login failed");
+       console.error("Backend response status:", response.status);
+       console.error("Backend JSON:", result);
+       throw new Error(result.message || "Login failed");
       }
+
 
       setLoginResult(result);
       console.log("Login successful:", result);

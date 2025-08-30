@@ -1,12 +1,20 @@
-import mongoose from "mongoose";
+import mongoose,{Types} from "mongoose";
 
 const saleSchema = new mongoose.Schema({
-  productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
-  productName: { type: String, required: true },
-  productPrice: { type: Number, required: true },
-  quantity: { type: Number, required: true },
-  totalPrice: { type: Number, required: true },
-  timestamp: { type: Date, default: Date.now },
-});
+    userId: { type:Types.ObjectId, ref: "User", required: true },
+    saleDate: { type: Date, default: Date.now },
+    items: [
+        {
+            saleId: { type:Types.ObjectId, ref: "Sale", required: true },
+            productId: { type: Types.ObjectId, ref: "Product", required: true },
+            quantity: { type: Number, required: true },
+            price: { type: Number, required: true },
+            totalAmount: { type: Number, required: true }
+        }
+    ],
+
+}, 
+{timestamps: true}
+);
 
 export const SaleModel = mongoose.model("Sale", saleSchema);

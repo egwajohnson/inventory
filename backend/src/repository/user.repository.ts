@@ -3,6 +3,7 @@ import { UserModel } from "../models/user.model";
 import { IAddUser } from "../interface/user.interface";
 import { userschema } from "../validation/user.schemal";
 import { Types } from "mongoose";
+import { OtpModel } from "../models/otp.model";
 
 
 export class UserRepository {
@@ -19,6 +20,11 @@ export class UserRepository {
 
         return response;
 
+    }
+
+    static async findOtp(otp: string){
+      const response = await OtpModel.findOne({ otp });
+      return response;
     }
 
     static async findUserById(id: Types.ObjectId) {
@@ -43,8 +49,21 @@ export class UserRepository {
 
         const response = await UserModel.findOne({email});
 
+            if (!response) {
+                throw new Error("User not found");
+            }
+
         return response;
 
+    }
+
+    static async otpCreate(email: string, otp: string){
+        const response = await OtpModel.create({
+            email,
+            otp
+        });
+
+        return response;
     }
 
     static async getUsers(){

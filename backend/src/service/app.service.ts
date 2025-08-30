@@ -1,17 +1,30 @@
 import { Express } from "express";
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 import { UserRepository } from "../repository/user.repository";
 import { ProductRepository } from "../repository/product.repository";
 import { IAddUser } from "../interface/user.interface";
 import { product } from "../interface/product.interface";
 import { ProductModel } from "../models/product.model";
-import {JWT_SECRET, JWT_EXP} from "../config/system.variable";
+import { JWT_SECRET, JWT_EXP } from "../config/system.variable";
+import { preRegister } from "../interface/preReg.interface";
+import { preValidate } from "../validation/user.schemal";
 import { userschema } from "../validation/user.schemal";
 import { productschema } from "../validation/product.schemal";
 import jwt from "jsonwebtoken";
 import { Types } from "mongoose";
 
 export class AppService {
+  static async preRegister(user: preRegister) {
+    const { error } = preValidate.validate(user);
+    if (error) {
+      throw new Error(`Validation error: ${error.details[0].message}`);
+    }
+
+    const otp = AppService.generateOtp(user.email);
+    return "used to otp send to you to continue";
+  }
+
   static async createUser(user: IAddUser) {
     if (!user) {
       throw new Error("User data is required");
@@ -34,6 +47,15 @@ export class AppService {
 
     if (!password) {
       throw new Error("Password is required");
+    }
+    const record = await UserRepository.findOtp(user.otp);
+
+    if (!record) {
+      throw new Error("Invalid OTP222");
+    }
+
+    if (record.otp.toString() !== user.otp.toString()) {
+      throw new Error("OTP does not belong to this user");
     }
 
     const existingUser = await UserRepository.findUserByEmail(user.email);
@@ -61,7 +83,6 @@ export class AppService {
       throw new Error("No users found");
     }
     return response;
-
   }
 
   static async findUserById(id: Types.ObjectId): Promise<any> {
@@ -72,6 +93,19 @@ export class AppService {
     const response = await UserRepository.findUserById(id);
     if (!response) {
       throw new Error("User not found");
+    }
+
+    return response;
+  }
+
+  static async generateOtp(email: string) {
+    const otp = crypto.randomInt(100000, 999999).toString();
+    console.log("Generated OTP:", otp); // Log the generated OTP for debugging
+
+    const response = await UserRepository.otpCreate(email, otp);
+    response.save();
+    if (!response) {
+      throw new Error("Failed to create OTP");
     }
 
     return response;
@@ -113,10 +147,9 @@ export class AppService {
     if (!isPasswordValid) {
       throw new Error("Invalid email or password");
     }
-     const payload = {
+    const payload = {
       userId: user._id,
     };
-
 
     let jwttoken = jwt.sign(payload, JWT_SECRET, {
       expiresIn: JWT_EXP,
@@ -230,72 +263,78 @@ export class AppService {
 
     return productupdat;
   }
- static async saleProduct(
-  productId: string | Types.ObjectId,
-  data: {
-    productName: string;
-    productPrice: number;
-    quantity: number;
-    totalPrice: number;
-  }
-) {
-  const { productName, productPrice, quantity, totalPrice } = data;
+  static async saleProduct(
+    productId: string | Types.ObjectId,
+    data: {
+      productName: string;
+      productPrice: number;
+      quantity: number;
+      totalPrice: number;
+    }
+  ) {
+    const { productName, productPrice, quantity, totalPrice } = data;
 
-  const quantities = await ProductModel.findOne({quantity:quantity});
+    const quantities = await ProductModel.findOne({ quantity: quantity });
 
-  if(data.productPrice <= 0 || data.quantity <= 0 || data.totalPrice <= 0) {
-    throw new Error("Product price, quantity, and total price must be positive numbers");
-  }
+    if (data.productPrice <= 0 || data.quantity <= 0 || data.totalPrice <= 0) {
+      throw new Error(
+        "Product price, quantity, and total price must be positive numbers"
+      );
+    }
 
-  if (!productName || !productPrice || quantity === undefined || totalPrice === undefined) {
-    throw new Error("Product name, product price, quantity, and total price are required");
-  }
+    if (
+      !productName ||
+      !productPrice ||
+      quantity === undefined ||
+      totalPrice === undefined
+    ) {
+      throw new Error(
+        "Product name, product price, quantity, and total price are required"
+      );
+    }
 
-  
-
-  const convertedProductId =
-    typeof productId === "string" ? new Types.ObjectId(productId) : productId;
+    const convertedProductId =
+      typeof productId === "string" ? new Types.ObjectId(productId) : productId;
 
     const product = await ProductModel.findById(convertedProductId);
 
-  if (!product) {
-    throw new Error("Product not found");
-  }
+    if (!product) {
+      throw new Error("Product not found");
+    }
 
     if (product.quantity < quantity) {
-    throw new Error("Insufficient quantity available for sale");
-  }
+      throw new Error("Insufficient quantity available for sale");
+    }
 
-  // Update product (e.g., reduce stock or mark as sold)
-  const updatedProduct = await ProductRepository.saleProduct(convertedProductId, data);
-
-  if (updatedProduct) {
-    // Save history if product update succeeded
-    await ProductRepository.createsaleHistory(
+    // Update product (e.g., reduce stock or mark as sold)
+    const updatedProduct = await ProductRepository.saleProduct(
       convertedProductId,
-      productName,
-      productPrice,
-      quantity,
-      totalPrice
+      data
     );
+
+    if (updatedProduct) {
+      // Save history if product update succeeded
+      await ProductRepository.createsaleHistory(
+        convertedProductId,
+        productName,
+        productPrice,
+        quantity,
+        totalPrice
+      );
+    }
+
+    // Return receipt object
+    return {
+      receipt: {
+        productId: convertedProductId.toString(),
+        productName,
+        productPrice,
+        quantity,
+        totalPrice,
+        date: new Date().toISOString(),
+      },
+      message: "Sale completed successfully",
+      //  updatedProduct,
+    };
   }
-
-  // Return receipt object
-  return {
-    receipt: {
-      productId: convertedProductId.toString(),
-      productName,
-      productPrice,
-      quantity,
-      totalPrice,
-      date: new Date().toISOString(),
-    },
-    message: "Sale completed successfully",
-   //  updatedProduct,
-  };
-}
-
-
-
-
 }
