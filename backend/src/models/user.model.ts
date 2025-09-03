@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { ref } from "process";
 
  const userSchema = new mongoose.Schema({
   title: { type: String, required: true },
@@ -7,7 +8,7 @@ import mongoose from "mongoose";
   username: { type: String, required: true },
   email: { type: String, required: true },
   password: { type: String, required: true },
-  otp: { type: String, required: true },
+  otp: { type: String, required: true, ref: "Otp" },
   gender: { type: String, required: true },
   DOB: { type: Date, required: true },
   phoneNumber: { type: String, required: true },

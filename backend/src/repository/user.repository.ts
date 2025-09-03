@@ -23,7 +23,7 @@ export class UserRepository {
     }
 
     static async findOtp(otp: string){
-      const response = await OtpModel.findOne({ otp });
+      const response = await OtpModel.findOneAndUpdate({ otp });
       return response;
     }
 

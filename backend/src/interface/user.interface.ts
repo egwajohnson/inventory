@@ -2,7 +2,7 @@ import express from 'express';
 import { Types } from 'mongoose';
 
 export interface IAddUser{
-  id?: Types.ObjectId; // Optional for creation, required for updates
+  // id?: Types.ObjectId; // Optional for creation, required for updates
   title: string;
   firstName: string;
   lastName: string;

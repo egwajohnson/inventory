@@ -5,9 +5,11 @@
     "dotenv": "^17.2.1",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
-    "jwtoken": "^0.0.0"
+    "jwtoken": "^0.0.0",
+    "nodemailer": "^7.0.6"
   },
   "devDependencies": {
-    "@types/jsonwebtoken": "^9.0.10"
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/nodemailer": "^7.0.1"
   }
 }

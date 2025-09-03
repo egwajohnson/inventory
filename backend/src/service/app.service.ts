@@ -1,6 +1,8 @@
 import { Express } from "express";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
+import { sendMail } from "../utill/send-mail";
+import {otpTemplate} from "../utill/otp-template";
 import { UserRepository } from "../repository/user.repository";
 import { ProductRepository } from "../repository/product.repository";
 import { IAddUser } from "../interface/user.interface";
@@ -8,8 +10,8 @@ import { product } from "../interface/product.interface";
 import { ProductModel } from "../models/product.model";
 import { JWT_SECRET, JWT_EXP } from "../config/system.variable";
 import { preRegister } from "../interface/preReg.interface";
-import { preValidate } from "../validation/user.schemal";
-import { userschema } from "../validation/user.schemal";
+import {userschema, preValidate } from "../validation/user.schemal";
+import {throwCustomError} from "../middleware/errorHandle.middleware";
 import { productschema } from "../validation/product.schemal";
 import jwt from "jsonwebtoken";
 import { Types } from "mongoose";
@@ -18,49 +20,68 @@ export class AppService {
   static async preRegister(user: preRegister) {
     const { error } = preValidate.validate(user);
     if (error) {
-      throw new Error(`Validation error: ${error.details[0].message}`);
+      throw throwCustomError(`Validation error: ${error.details[0].message}`, 400);
     }
 
-    const otp = AppService.generateOtp(user.email);
-    return "used to otp send to you to continue";
+    const existemail = await UserRepository.findUserByEmail(user.email);
+    if (existemail) {
+      throw throwCustomError("Email already exists", 400);
+    }
+
+    const otp = await AppService.generateOtp(user.email);
+    await UserRepository.otpCreate(user.email, otp as any);
+
+    sendMail(
+      {
+        email: user.email,
+        subject: "OTP VERIFICATION",
+        emailInfo: {
+          otp: otp.toString(),
+          name: `${user.email}`,
+        },
+      },
+      otpTemplate
+    );
+
+    return "OTP has been sent to your email to continue.";
   }
 
   static async createUser(user: IAddUser) {
     if (!user) {
-      throw new Error("User data is required");
+      throw throwCustomError("User data is required", 400);
     }
 
     const { error } = userschema.validate(user);
     if (error) {
-      throw new Error(`Validation error: ${error.details[0].message}`);
+      throw throwCustomError(`Validation error: ${error.details[0].message}`, 400);
     }
 
     const { email, password } = user;
 
     if (!email) {
-      throw new Error("Email is required");
+      throw throwCustomError("Email is required",400);
     }
 
     if (!email.includes("@")) {
-      throw new Error("Invalid email format");
+      throw throwCustomError("Invalid email format",400);
     }
 
     if (!password) {
-      throw new Error("Password is required");
+      throw throwCustomError("Password is required",400);
     }
     const record = await UserRepository.findOtp(user.otp);
 
     if (!record) {
-      throw new Error("Invalid OTP222");
+       throw throwCustomError("Invalid OTP222",400);
     }
 
     if (record.otp.toString() !== user.otp.toString()) {
-      throw new Error("OTP does not belong to this user");
+       throw throwCustomError("OTP does not belong to this user",400);
     }
 
     const existingUser = await UserRepository.findUserByEmail(user.email);
     if (existingUser) {
-      throw new Error("Cannot create: User with this email already exists");
+      throw throwCustomError("Cannot create: User with this email already exists",400);
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -72,7 +93,7 @@ export class AppService {
 
     const response = await UserRepository.createUser(newUser);
 
-    //console.log("User created successfully:", response);
+    console.log("User created successfully:", response);
 
     return response;
   }
@@ -80,19 +101,19 @@ export class AppService {
   static async getUsers() {
     const response = await UserRepository.getUsers();
     if (!response || response.length === 0) {
-      throw new Error("No users found");
+      throw throwCustomError("No users found", 404);
     }
     return response;
   }
 
   static async findUserById(id: Types.ObjectId): Promise<any> {
     if (!id) {
-      throw new Error("User ID is required");
+      throw throwCustomError("User ID is required", 400);
     }
 
     const response = await UserRepository.findUserById(id);
     if (!response) {
-      throw new Error("User not found");
+      throw throwCustomError("User not found", 404);
     }
 
     return response;
@@ -103,9 +124,9 @@ export class AppService {
     console.log("Generated OTP:", otp); // Log the generated OTP for debugging
 
     const response = await UserRepository.otpCreate(email, otp);
-    response.save();
+    await response.save();
     if (!response) {
-      throw new Error("Failed to create OTP");
+      throw throwCustomError("Failed to create OTP", 500);
     }
 
     return response;
@@ -113,12 +134,12 @@ export class AppService {
 
   static async deleteUser(id: Types.ObjectId) {
     if (!id) {
-      throw new Error("User ID is required");
+      throw throwCustomError("User ID is required", 400);
     }
 
     const response = await UserRepository.deleteUser(id);
     if (!response) {
-      throw new Error("User not found");
+      throw throwCustomError("User not found", 404);
     }
 
     return response;
@@ -126,17 +147,17 @@ export class AppService {
 
   static async loginUser(email: string, password: string): Promise<any> {
     if (!email || !password) {
-      throw new Error("Email and password are required");
+      throw throwCustomError("Email and password are required", 400);
     }
 
     if (!email.includes("@")) {
-      throw new Error("Invalid email format");
+      throw throwCustomError("Invalid email format", 400);
     }
 
     const user = await UserRepository.loginUser(email);
 
     if (!user) {
-      throw new Error("Invalid credentials");
+      throw throwCustomError("Invalid credentials", 401);
     }
 
     const isPasswordValid = await bcrypt.compare(
@@ -145,7 +166,7 @@ export class AppService {
     );
 
     if (!isPasswordValid) {
-      throw new Error("Invalid email or password");
+      throw throwCustomError("Invalid email or password", 401);
     }
     const payload = {
       userId: user._id,
@@ -155,7 +176,7 @@ export class AppService {
       expiresIn: JWT_EXP,
     } as any);
 
-    if (!jwttoken) throw new Error("Unable to login");
+    if (!jwttoken) throw throwCustomError("Unable to login", 500);
 
     console.log("JWT Token:", jwttoken);
 
@@ -172,31 +193,31 @@ export class AppService {
 
   static async createProduct(product: product) {
     if (!product) {
-      throw new Error("Product data is required");
+      throw throwCustomError("Product data is required", 400);
     }
     const { error } = productschema.validate(product);
     if (error) {
-      throw new Error(`Validation error: ${error.details[0].message}`);
+      throw throwCustomError(`Validation error: ${error.details[0].message}`, 400);
     }
 
     const { productName, productPrice, quantity } = product;
 
     // Basic validation
     if (!productName || !productPrice || !quantity) {
-      throw new Error("Product name, price, and quantity are required 3");
+      throw throwCustomError("Product name, price, and quantity are required", 400);
     }
 
     if (isNaN(productPrice) || productPrice <= 0) {
-      throw new Error("Product price must be a positive number");
+      throw throwCustomError("Product price must be a positive number",400);
     }
 
     if (isNaN(quantity) || quantity < 0) {
-      throw new Error("Quantity must be a non-negative number");
+      throw throwCustomError("Quantity must be a non-negative number", 400);
     }
 
     const existingProduct = await ProductRepository.findByName(productName);
     if (existingProduct) {
-      throw new Error("Product already exists with this name");
+      throw throwCustomError("Product already exists with this name",400);
     }
 
     const response = await ProductRepository.addProduct({
@@ -209,39 +230,39 @@ export class AppService {
   static async getProducts() {
     const response = await ProductRepository.getproduct();
     if (!response || response.length === 0) {
-      throw new Error("No products found");
+      throw throwCustomError("No products found", 404);
     }
     return response;
   }
 
   static async deleteProduct(id: Types.ObjectId) {
     if (!id) {
-      throw new Error("Product ID is required");
+      throw throwCustomError("Product ID is required", 400);
     }
 
     const product = await ProductRepository.deleteProduct(id);
 
     if (!product) {
-      throw new Error("product does not exist");
+      throw throwCustomError("product does not exist", 404);
     }
     return "product deleted successful";
   }
 
   static async findProductByName(productName: string) {
     if (!productName) {
-      throw new Error("product name is requred");
+      throw throwCustomError("product name is requred", 400);
     }
 
     const product = ProductRepository.findByName(productName);
     if (!product) {
-      throw new Error("product does not exist");
+      throw throwCustomError("product does not exist", 404);
     }
     return product;
   }
 
   static async updateProduct(productName: string, productPrice: string) {
     if (!productPrice) {
-      throw new Error("product price is needed to update");
+      throw throwCustomError("product price is needed to update", 400);
     }
 
     const productupdat = await ProductRepository.updateProduct(
@@ -253,7 +274,7 @@ export class AppService {
   }
   static async updateProductQuantity(productName: string, quantity: number) {
     if (!productName || quantity === undefined) {
-      throw new Error("Product name and quantity are required");
+      throw throwCustomError("Product name and quantity are required", 400);
     }
 
     const productupdat = await ProductRepository.updatequantity(
@@ -277,19 +298,21 @@ export class AppService {
     const quantities = await ProductModel.findOne({ quantity: quantity });
 
     if (data.productPrice <= 0 || data.quantity <= 0 || data.totalPrice <= 0) {
-      throw new Error(
-        "Product price, quantity, and total price must be positive numbers"
+      throw throwCustomError(
+        "Product price, quantity, and total price must be positive numbers",
+        400
       );
     }
 
     if (
-      !productName ||
+      !productName ||  
       !productPrice ||
       quantity === undefined ||
       totalPrice === undefined
     ) {
-      throw new Error(
-        "Product name, product price, quantity, and total price are required"
+      throw throwCustomError(
+        "Product name, product price, quantity, and total price are required",
+        400
       );
     }
 
@@ -299,11 +322,11 @@ export class AppService {
     const product = await ProductModel.findById(convertedProductId);
 
     if (!product) {
-      throw new Error("Product not found");
+      throw throwCustomError("Product not found", 404);
     }
 
     if (product.quantity < quantity) {
-      throw new Error("Insufficient quantity available for sale");
+      throw throwCustomError("Insufficient quantity available for sale", 400);
     }
 
     // Update product (e.g., reduce stock or mark as sold)

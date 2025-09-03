@@ -24,6 +24,7 @@ export class AppController {
       const response = await AppService.createUser(user);
       res.status(201).json(response);
     } catch (error: any) {
+      console.log("Error creating user:", error);
       res.status(400).json({ success: false, payload: error.message });
     }
   }

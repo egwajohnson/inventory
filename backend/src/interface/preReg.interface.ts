@@ -3,6 +3,4 @@ export interface preRegister{
   password: string;
   position: "admin" | "staff";
   isVarified: boolean;
-  createdAt: Date;
-  updatedAt: Date;
 }
