@@ -1,8 +1,7 @@
-import { Express } from "express";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
-import { sendMail } from "../utill/send-mail";
-import {otpTemplate} from "../utill/otp-template";
+import { sendMail } from "../util/nodemailer";
+import {otpTemplate} from "../util/otp-template";
 import { UserRepository } from "../repository/user.repository";
 import { ProductRepository } from "../repository/product.repository";
 import { IAddUser } from "../interface/user.interface";
@@ -57,7 +56,6 @@ export class AppService {
     }
 
     const { email, password } = user;
-
     if (!email) {
       throw throwCustomError("Email is required",400);
     }

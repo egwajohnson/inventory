@@ -19,9 +19,24 @@ export class ProductRepository {
     return response;
 
   }
-  static async getproduct(){
-    const response = await ProductModel.find( {}).sort({ createdAt: -1 }).select("-__v");
-   return response;
+  static async getproduct( page: number,limit: number,){
+
+    const skip = (page - 1) * limit;
+    const response = await ProductModel.find( {}).lean().skip(skip).limit(limit).sort({ createdAt: -1 }).select("-__v");
+
+    const count = await ProductModel.countDocuments();
+
+    const total = Math.ceil(count / limit);
+
+   return  {
+      products: response,
+      meta: {
+        pages: total,
+        page: page,
+        limit: limit,
+        totalRecords: count,
+      },
+    };
   }
 
   static async findByName(productName: string): Promise<any>{
