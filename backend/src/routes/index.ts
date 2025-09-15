@@ -14,6 +14,7 @@ router.post("/user/pre-register", AppController.preRegister);
 router.post("/user", AppController.createUser);
 router.get("/user/get" , AppController.getUsers);
 router.delete("/user/delete/:id", AppController.deleteUser);
+router.delete("/user/email", AppController.deleteUserByEmail)
 // router.post("/user",validator(userschema), AppController.createUser);
 router.get("/user/:id", AppController.findUserById);
 //router.post("/user",upload.single("image"), AppController.createUser);

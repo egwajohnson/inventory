@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { sendMail } from "../util/nodemailer";
-import {otpTemplate} from "../util/otp-template";
+import { otpTemplate } from "../util/otp-template";
 import { UserRepository } from "../repository/user.repository";
 import { ProductRepository } from "../repository/product.repository";
 import { IAddUser } from "../interface/user.interface";
@@ -9,17 +9,20 @@ import { product } from "../interface/product.interface";
 import { ProductModel } from "../models/product.model";
 import { JWT_SECRET, JWT_EXP } from "../config/system.variable";
 import { preRegister } from "../interface/preReg.interface";
-import {userschema, preValidate } from "../validation/user.schemal";
-import {throwCustomError} from "../middleware/errorHandle.middleware";
+import { userschema, preValidate } from "../validation/user.schemal";
+import { throwCustomError } from "../middleware/errorHandle.middleware";
 import { productschema } from "../validation/product.schemal";
 import jwt from "jsonwebtoken";
 import { Types } from "mongoose";
 
 export class AppService {
-  static async preRegister(user: preRegister) {
+  static preRegister = async (user: preRegister) => {
     const { error } = preValidate.validate(user);
     if (error) {
-      throw throwCustomError(`Validation error: ${error.details[0].message}`, 400);
+      throw throwCustomError(
+        `Validation error: ${error.details[0].message}`,
+        400
+      );
     }
 
     const existemail = await UserRepository.findUserByEmail(user.email);
@@ -43,43 +46,49 @@ export class AppService {
     );
 
     return "OTP has been sent to your email to continue.";
-  }
+  };
 
-  static async createUser(user: IAddUser) {
+  static createUser = async (user: IAddUser) => {
     if (!user) {
       throw throwCustomError("User data is required", 400);
     }
 
     const { error } = userschema.validate(user);
     if (error) {
-      throw throwCustomError(`Validation error: ${error.details[0].message}`, 400);
+      throw throwCustomError(
+        `Validation error: ${error.details[0].message}`,
+        400
+      );
     }
 
     const { email, password } = user;
     if (!email) {
-      throw throwCustomError("Email is required",400);
+      throw throwCustomError("Email is required", 400);
     }
 
     if (!email.includes("@")) {
-      throw throwCustomError("Invalid email format",400);
+      throw throwCustomError("Invalid email format", 400);
     }
 
     if (!password) {
-      throw throwCustomError("Password is required",400);
+      throw throwCustomError("Password is required", 400);
     }
     const record = await UserRepository.findOtp(user.otp);
 
     if (!record) {
-       throw throwCustomError("Invalid OTP222",400);
+      throw throwCustomError("Invalid OTP222", 400);
     }
 
     if (record.otp.toString() !== user.otp.toString()) {
-       throw throwCustomError("OTP does not belong to this user",400);
+      throw throwCustomError("OTP does not belong to this user", 400);
     }
 
     const existingUser = await UserRepository.findUserByEmail(user.email);
     if (existingUser) {
-      throw throwCustomError("Cannot create: User with this email already exists",400);
+      throw throwCustomError(
+        "Cannot create: User with this email already exists",
+        400
+      );
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -94,17 +103,17 @@ export class AppService {
     console.log("User created successfully:", response);
 
     return response;
-  }
+  };
 
-  static async getUsers() {
+  static getUsers = async () => {
     const response = await UserRepository.getUsers();
     if (!response || response.length === 0) {
       throw throwCustomError("No users found", 404);
     }
     return response;
-  }
+  };
 
-  static async findUserById(id: Types.ObjectId): Promise<any> {
+  static findUserById = async (id: Types.ObjectId): Promise<any> => {
     if (!id) {
       throw throwCustomError("User ID is required", 400);
     }
@@ -115,9 +124,9 @@ export class AppService {
     }
 
     return response;
-  }
+  };
 
-  static async generateOtp(email: string) {
+  static generateOtp = async (email: string) => {
     const otp = crypto.randomInt(100000, 999999).toString();
     console.log("Generated OTP:", otp); // Log the generated OTP for debugging
 
@@ -128,9 +137,9 @@ export class AppService {
     }
 
     return response;
-  }
+  };
 
-  static async deleteUser(id: Types.ObjectId) {
+  static deleteUser = async (id: Types.ObjectId) => {
     if (!id) {
       throw throwCustomError("User ID is required", 400);
     }
@@ -141,9 +150,9 @@ export class AppService {
     }
 
     return response;
-  }
+  };
 
-  static async loginUser(email: string, password: string): Promise<any> {
+  static loginUser = async (email: string, password: string): Promise<any> => {
     if (!email || !password) {
       throw throwCustomError("Email and password are required", 400);
     }
@@ -185,28 +194,46 @@ export class AppService {
       email: user.email,
       token: jwttoken,
     };
-  }
+  };
+
+  static deleteUserByEmail = async (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new Error(`Invalid email format: ${email}`);
+    }
+    const response = await UserRepository.deleteUserByEmail(email);
+    if (!response) {
+      throw throwCustomError("email does not exits", 500);
+    }
+    return response;
+  };
 
   // product section
 
-  static async createProduct(product: product) {
+  static createProduct = async (product: product) => {
     if (!product) {
       throw throwCustomError("Product data is required", 400);
     }
     const { error } = productschema.validate(product);
     if (error) {
-      throw throwCustomError(`Validation error: ${error.details[0].message}`, 400);
+      throw throwCustomError(
+        `Validation error: ${error.details[0].message}`,
+        400
+      );
     }
 
     const { productName, productPrice, quantity } = product;
 
     // Basic validation
     if (!productName || !productPrice || !quantity) {
-      throw throwCustomError("Product name, price, and quantity are required", 400);
+      throw throwCustomError(
+        "Product name, price, and quantity are required",
+        400
+      );
     }
 
     if (isNaN(productPrice) || productPrice <= 0) {
-      throw throwCustomError("Product price must be a positive number",400);
+      throw throwCustomError("Product price must be a positive number", 400);
     }
 
     if (isNaN(quantity) || quantity < 0) {
@@ -215,7 +242,7 @@ export class AppService {
 
     const existingProduct = await ProductRepository.findByName(productName);
     if (existingProduct) {
-      throw throwCustomError("Product already exists with this name",400);
+      throw throwCustomError("Product already exists with this name", 400);
     }
 
     const response = await ProductRepository.addProduct({
@@ -223,17 +250,20 @@ export class AppService {
     });
 
     return response;
-  }
+  };
 
-  static async getProducts() {
-    const response = await ProductRepository.getproduct();
-    if (!response || response.length === 0) {
+  static getProducts = async (filter: { page: string; limit: string }) => {
+    const page = parseInt(filter.page) || 1;
+    const limit = parseInt(filter.limit) || 10;
+
+    const response = await ProductRepository.getproduct(page, limit);
+    if (!response) {
       throw throwCustomError("No products found", 404);
     }
     return response;
-  }
+  };
 
-  static async deleteProduct(id: Types.ObjectId) {
+  static deleteProduct = async (id: Types.ObjectId) => {
     if (!id) {
       throw throwCustomError("Product ID is required", 400);
     }
@@ -244,9 +274,9 @@ export class AppService {
       throw throwCustomError("product does not exist", 404);
     }
     return "product deleted successful";
-  }
+  };
 
-  static async findProductByName(productName: string) {
+  static findProductByName = async (productName: string) => {
     if (!productName) {
       throw throwCustomError("product name is requred", 400);
     }
@@ -256,9 +286,9 @@ export class AppService {
       throw throwCustomError("product does not exist", 404);
     }
     return product;
-  }
+  };
 
-  static async updateProduct(productName: string, productPrice: string) {
+  static updateProduct = async (productName: string, productPrice: string) => {
     if (!productPrice) {
       throw throwCustomError("product price is needed to update", 400);
     }
@@ -269,8 +299,11 @@ export class AppService {
     );
 
     return productupdat;
-  }
-  static async updateProductQuantity(productName: string, quantity: number) {
+  };
+  static updateProductQuantity = async (
+    productName: string,
+    quantity: number
+  ) => {
     if (!productName || quantity === undefined) {
       throw throwCustomError("Product name and quantity are required", 400);
     }
@@ -281,8 +314,8 @@ export class AppService {
     );
 
     return productupdat;
-  }
-  static async saleProduct(
+  };
+  static saleProduct = async (
     productId: string | Types.ObjectId,
     data: {
       productName: string;
@@ -290,7 +323,7 @@ export class AppService {
       quantity: number;
       totalPrice: number;
     }
-  ) {
+  ) => {
     const { productName, productPrice, quantity, totalPrice } = data;
 
     const quantities = await ProductModel.findOne({ quantity: quantity });
@@ -303,7 +336,7 @@ export class AppService {
     }
 
     if (
-      !productName ||  
+      !productName ||
       !productPrice ||
       quantity === undefined ||
       totalPrice === undefined
@@ -357,5 +390,5 @@ export class AppService {
       message: "Sale completed successfully",
       //  updatedProduct,
     };
-  }
+  };
 }

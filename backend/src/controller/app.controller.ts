@@ -4,17 +4,17 @@ import { Request, Response } from "express";
 import { get } from "mongoose";
 
 export class AppController {
-   static async preRegister(req: Request, res: Response) {
-     try {
-       const user = req.body;
-       const response = await AppService.preRegister(user);
-       res.status(201).json(response);
-     } catch (error: any) {
-       res.status(400).json({ success: false, payload: error.message });
-     }
-   }
+  static preRegister = async (req: Request, res: Response) => {
+    try {
+      const user = req.body;
+      const response = await AppService.preRegister(user);
+      res.status(201).json(response);
+    } catch (error: any) {
+      res.status(400).json({ success: false, payload: error.message });
+    }
+  };
 
-  static async createUser(req: Request, res: Response) {
+  static createUser = async (req: Request, res: Response) => {
     try {
       //    const path = req.file?.path;
       const user = req.body;
@@ -27,20 +27,19 @@ export class AppController {
       console.log("Error creating user:", error);
       res.status(400).json({ success: false, payload: error.message });
     }
-  }
+  };
 
-  static async getUsers(req:Request, res:Response){
+  static getUsers = async (req: Request, res: Response) => {
     try {
       const get = req.body;
       const response = await AppService.getUsers();
       res.status(200).json(response);
-    } catch (error:any) {
-      res.status(400).json({success:false, payload:error.response})
-      
+    } catch (error: any) {
+      res.status(400).json({ success: false, payload: error.response });
     }
-  }
+  };
 
-  static async deleteUser(req: Request, res: Response) {
+  static deleteUser = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
 
@@ -49,9 +48,25 @@ export class AppController {
     } catch (error: any) {
       res.status(404).json({ success: false, payload: error.message });
     }
-  }
+  };
 
-  static async findUserById(req: Request, res: Response) {
+  static deleteUserByEmail = async (req: Request, res: Response) => {
+    try {
+      const{ email} = req.body;
+      console.log("type of email:", typeof email, "value:", email);
+      const response = AppService.deleteUserByEmail(email);
+      console.log(response)
+      res.status(200).json({success:true, payload:"User Deleted"});
+      
+    } catch (error:any) {
+      res.status(400).json({
+        success:false,
+        message:error.message
+      })
+    }
+  };
+
+  static findUserById = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
 
@@ -60,9 +75,9 @@ export class AppController {
     } catch (error: any) {
       res.status(404).json({ success: false, payload: error.message });
     }
-  }
+  };
 
-  static async loginUser(req: Request, res: Response) {
+  static loginUser = async (req: Request, res: Response) => {
     try {
       const { email, password } = req.body;
 
@@ -76,12 +91,11 @@ export class AppController {
     } catch (error: any) {
       return res.status(404).json({ success: false, payload: error.message });
     }
-  }
-  
+  };
 
   // product section
 
-  static async createProduct(req: Request, res: Response) {
+  static createProduct = async (req: Request, res: Response) => {
     try {
       const product = req.body;
 
@@ -99,18 +113,22 @@ export class AppController {
     } catch (error: any) {
       res.status(400).json({ success: false, payload: error.message });
     }
-  }
+  };
 
-  static async getProducts(req: Request, res: Response) {
+  static getProducts = async (req: Request, res: Response) => {
     try {
-      const response = await AppService.getProducts();
+      const { page, limit } = req.query as {
+        page: string;
+        limit: string;
+      };
+      const response = await AppService.getProducts({ page, limit });
       res.status(200).json(response);
     } catch (error: any) {
       res.status(404).json({ success: false, payload: error.message });
     }
-  }
+  };
 
-  static async deleteProduct(req: Request, res: Response) {
+  static deleteProduct = async (req: Request, res: Response) => {
     try {
       const { id } = req.body;
 
@@ -119,9 +137,9 @@ export class AppController {
     } catch (error: any) {
       res.status(404).json({ success: false, payload: error.message });
     }
-  }
+  };
 
-  static async findProductByName(req: Request, res: Response) {
+  static findProductByName = async (req: Request, res: Response) => {
     try {
       const { productName } = req.body;
 
@@ -130,9 +148,9 @@ export class AppController {
     } catch (error: any) {
       res.status(404).json({ success: false, payload: error.message });
     }
-  }
+  };
 
-  static async updateProduct(req: Request, res: Response) {
+  static updateProduct = async (req: Request, res: Response) => {
     try {
       const { productName, productPrice } = req.body;
 
@@ -144,9 +162,9 @@ export class AppController {
     } catch (error: any) {
       res.status(404).json({ success: false, payload: error.message });
     }
-  }
+  };
 
-  static async updateProductQuantity(req: Request, res: Response) {
+  static updateProductQuantity = async (req: Request, res: Response) => {
     try {
       const { productName, quantity } = req.body;
 
@@ -158,9 +176,9 @@ export class AppController {
     } catch (error: any) {
       res.status(404).json({ success: false, payload: error.message });
     }
-  }
+  };
 
-  static async saleProduct(req: Request, res: Response) {
+  static saleProduct = async (req: Request, res: Response) => {
     try {
       const { productId, productName, productPrice, quantity, totalPrice } =
         req.body;
@@ -175,5 +193,5 @@ export class AppController {
     } catch (error: any) {
       res.status(404).json({ success: false, payload: error.message });
     }
-  }
+  };
 }
