@@ -2,21 +2,19 @@ import  express  from "express";
 import { AppController } from "../controller/app.controller";
 import {authMiddleware} from "../middleware/auth.middleware";
 import {DB_CONNECTION_URL, PORT} from "../config/system.variable"
-import {validator} from "../middleware/validate.middleware";
 //import { upload } from "../config/multer.config";
 
-import dotenv from "dotenv";
+import dotenv from "dotenv";  
 dotenv.config();
 
 const router = express.Router();
 
 router.post("/user/pre-register", AppController.preRegister);
 router.post("/user", AppController.createUser);
-router.get("/user/get" , AppController.getUsers);
-router.delete("/user/delete/:id", AppController.deleteUser);
-router.delete("/user/email", AppController.deleteUserByEmail)
-// router.post("/user",validator(userschema), AppController.createUser);
-router.get("/user/:id", AppController.findUserById);
+router.get("/user/get" ,authMiddleware as any, AppController.getUsers);
+router.delete("/user/delete/:id", authMiddleware as any, AppController.deleteUser);
+router.delete("/user/email", authMiddleware as any, AppController.deleteUserByEmail);
+router.get("/user/:id", authMiddleware as any, AppController.findUserById);
 //router.post("/user",upload.single("image"), AppController.createUser);
 router.post("/login", AppController.loginUser as any)
 router.post("/product", AppController.createProduct);
