@@ -1,19 +1,18 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-function Login() {
+export default function Login() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [loginResult, setLoginResult] = useState(null);
+  const [error, setError] = useState("");
 
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
+    setError("");
 
     try {
-      const response = await fetch("http://localhost:5000/api/login", {
+      const res = await fetch("http://localhost:5000/api/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -21,70 +20,52 @@ function Login() {
         body: JSON.stringify({ email, password }),
       });
 
-      //const result = await response.json();
-      let result;
-  try {
-    result = await response.text();
-  } catch {
-    throw new Error("Server returned invalid JSON");
-  }
+      const text = await res.text();
 
-      if (!response.ok) {
-       console.error("Backend response status:", response.status);
-       console.error("Backend JSON:", result);
-       throw new Error(result.message || "Login failed");
+      console.log("STATUS:", res.status);
+      console.log("BODY:", text);
+      const data = text ? JSON.parse(text) : null;
+
+      if (!res.ok) {
+        throw new Error(data?.message || "Login failed");
       }
 
+      // ✅ Store token or user data if returned
+      localStorage.setItem("token", data?.token || "");
 
-      setLoginResult(result);
-      console.log("Login successful:", result);
+      // ✅ Redirect to dashboard
+      navigate("/dashboard");
     } catch (err) {
       setError(err.message);
-      console.error("Error occurred during login:", err);
-    } finally {
-      setLoading(false);
     }
   };
 
   return (
     <div>
       <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Email:</label><br />
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
+      {error && <p style={{ color: "red" }}>{error}</p>}
 
-        <div>
-          <label>Password:</label><br />
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-
-        <button type="submit" disabled={loading}>
-          {loading ? "Logging in..." : "Login"}
-        </button>
+      <form onSubmit={handleLogin}>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <br />
+        <br />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <br />
+        <br />
+        <button type="submit">Login</button>
       </form>
-
-      {error && <p style={{ color: "red" }}>Error: {error}</p>}
-
-      {loginResult && (
-        <div>
-          <h3>Login Result:</h3>
-          <pre>{JSON.stringify(loginResult, null, 2)}</pre>
-        </div>
-      )}
     </div>
   );
 }
-
-export default Login;

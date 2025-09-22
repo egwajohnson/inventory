@@ -232,6 +232,19 @@ export class AppService {
       );
     }
 
+    // Slug creation logic
+
+    const slugs = productName
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9\-]/g, "")
+      .replace(/\-{2,}/g, "-");
+
+    console.log(slugs);
+
+    product.slug = slugs;
+
     if (isNaN(productPrice) || productPrice <= 0) {
       throw throwCustomError("Product price must be a positive number", 400);
     }

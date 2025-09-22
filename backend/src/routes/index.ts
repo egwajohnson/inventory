@@ -1,6 +1,7 @@
 import  express  from "express";
 import { AppController } from "../controller/app.controller";
 import {authMiddleware} from "../middleware/auth.middleware";
+import { upload } from "../config/multer.config";
 import {DB_CONNECTION_URL, PORT} from "../config/system.variable"
 //import { upload } from "../config/multer.config";
 
@@ -17,7 +18,7 @@ router.delete("/user/email", authMiddleware as any, AppController.deleteUserByEm
 router.get("/user/:id", authMiddleware as any, AppController.findUserById);
 //router.post("/user",upload.single("image"), AppController.createUser);
 router.post("/login", AppController.loginUser as any)
-router.post("/product", AppController.createProduct);
+router.post("/product", upload.single("file"), AppController.createProduct as any);
 //router.post("/product",upload.single("picture"), AppController.createProduct as any);
 router.delete("/productName",AppController.deleteProduct);
 router.get("/productName", AppController.findProductByName)

@@ -87,8 +87,8 @@ export class AppController {
           .json({ success: false, message: "Email and password are required" });
       }
       const response = await AppService.loginUser(email, password);
-      return res.status(200).json(response);
     } catch (error: any) {
+       console.error("Login error:", error);
       return res.status(404).json({ success: false, payload: error.message });
     }
   };
@@ -96,24 +96,31 @@ export class AppController {
   // product section
 
   static createProduct = async (req: Request, res: Response) => {
-    try {
-      const product = req.body;
+  try {
+    const product = req.body;
 
-      // Handle file upload (e.g. product image)
-      // const filePath = req.file?.path;
-      // if (!filePath) {
-      //   return res.status(400).json({ error: "Product image is missing" });
-      // }
-
-      // Attach image path to product data
-      // product.image = filePath;
-
-      const response = await AppService.createProduct(product);
-      res.status(201).json(response);
-    } catch (error: any) {
-      res.status(400).json({ success: false, payload: error.message });
+    // Handle file upload (e.g., product image)
+    const filePath = req.file?.path;
+    console.log("Received file:", req.file);
+    if (!filePath) {
+      return res.status(400).json({ error: "Product image is missing" });
     }
-  };
+
+    // Attach image path to product data
+    product.file = filePath;
+
+    // Create product using service
+    const response = await AppService.createProduct(product);
+
+    return res.status(201).json({ success: true, payload: response });
+  } catch (error: any) {
+    return res.status(400).json({
+      success: false,
+      error: error.message || "Something went wrong",
+    });
+  }
+};
+
 
   static getProducts = async (req: Request, res: Response) => {
     try {
