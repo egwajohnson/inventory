@@ -8,12 +8,19 @@ import { IAddUser } from "../interface/user.interface";
 import { product } from "../interface/product.interface";
 import { ProductModel } from "../models/product.model";
 import { JWT_SECRET, JWT_EXP } from "../config/system.variable";
+import { ImagePath } from "../interface/image.terface";
 import { preRegister } from "../interface/preReg.interface";
-import { userschema, preValidate } from "../validation/user.schemal";
+import {
+  userschema,
+  preValidate,
+  profileSchema,
+} from "../validation/user.schemal";
 import { throwCustomError } from "../middleware/errorHandle.middleware";
 import { productschema } from "../validation/product.schemal";
 import jwt from "jsonwebtoken";
 import { Types } from "mongoose";
+import path from "path";
+import { CartModel } from "../models/cart.model";
 
 export class AppService {
   static preRegister = async (user: preRegister) => {
@@ -48,7 +55,7 @@ export class AppService {
     return "OTP has been sent to your email to continue.";
   };
 
-  static createUser = async (user: IAddUser) => {
+  static createUser = async (user: any, file: Express.Multer.File) => {
     if (!user) {
       throw throwCustomError("User data is required", 400);
     }
@@ -93,12 +100,16 @@ export class AppService {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = {
+    const payload = {
       ...user,
       password: hashedPassword,
+      image: file.path,
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      size: file.size,
     };
 
-    const response = await UserRepository.createUser(newUser);
+    const response = await UserRepository.createUser(payload);
 
     console.log("User created successfully:", response);
 
@@ -126,10 +137,59 @@ export class AppService {
     return response;
   };
 
+  static async uploadProfileImage(userId: Types.ObjectId, path: ImagePath) {
+    const { imageUrl, imageType, imageSize, publicId } = path;
+    const { error } = profileSchema.validate({
+      imageUrl,
+      imageType,
+      imageSize,
+      publicId,
+    });
+    if (error) {
+      throw throwCustomError(
+        `Validation error: ${error.details[0].message}`,
+        400
+      );
+    }
+    if (!userId) {
+      throw new Error("User ID is required");
+    }
+
+    if (!path || !path.imageUrl) {
+      throw new Error("Image data is required");
+    }
+
+    // Optional: validate image type and size
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    const maxSize = 5 * 1024 * 1024; // 5 MB
+
+    if (!allowedTypes.includes(path.imageType)) {
+      throw new Error(
+        "Invalid image type. Only JPEG, PNG, and WEBP are allowed."
+      );
+    }
+
+    if (path.imageSize > maxSize) {
+      throw new Error("Image size exceeds 5MB limit.");
+    }
+
+    // Upload image to repository
+    const updatedUser = await UserRepository.uploadProfileImage(userId, path);
+
+    if (!updatedUser) {
+      throw new Error("Failed to upload profile image");
+    }
+
+    return {
+      success: true,
+      message: "Profile image uploaded successfully",
+      data: updatedUser,
+    };
+  }
+
   static generateOtp = async (email: string) => {
     const otp = crypto.randomInt(100000, 999999).toString();
-    console.log("Generated OTP:", otp); // Log the generated OTP for debugging
-
+    console.log("Generated OTP:", otp);
     const response = await UserRepository.otpCreate(email, otp);
     await response.save();
     if (!response) {
@@ -152,7 +212,7 @@ export class AppService {
     return response;
   };
 
-  static loginUser = async (email: string, password: string): Promise<any> => {
+  static loginUser = async (email: string, password: string, ipAddress: string, userAgent: string): Promise<any> => {
     if (!email || !password) {
       throw throwCustomError("Email and password are required", 400);
     }
@@ -161,7 +221,7 @@ export class AppService {
       throw throwCustomError("Invalid email format", 400);
     }
 
-    const user = await UserRepository.loginUser(email);
+    const user = await UserRepository.loginUser(email, password, ipAddress, userAgent);
 
     if (!user) {
       throw throwCustomError("Invalid credentials", 401);
@@ -208,9 +268,78 @@ export class AppService {
     return response;
   };
 
+  static otpCreate = async (email: string) => {
+    const user = await UserRepository.findUserByEmail(email);
+    if (!user) {
+      throw throwCustomError("User with this email does not exist", 404);
+    }
+    const existingOtp = await UserRepository.findOtpByEmail(email);
+  if (existingOtp) {
+    throw throwCustomError(
+      "OTP already exists. Please wait or verify the existing OTP.",
+      409
+    );
+  }
+    const genOtp = await AppService.generateOtp(email);
+    if (!genOtp || !genOtp.otp) {
+      throw throwCustomError("Failed to generate OTP", 500);
+    }
+
+    const response = await UserRepository.otpCreate(email, genOtp.otp);
+    // sendMail(
+    //   {
+    //     email: user!.email,
+    //     subject: " VERIFICATION OTP",
+    //     emailInfo: {
+    //       otp: genOtp.otp.toString(),
+    //        name: `${user.email}`,
+    //     },
+    //   },
+    //   otpTemplate
+    // );
+    return "OTP has been sent to your email to continue.";
+  }
+
+  static passwordReset = async (
+    email: string,
+    otp: string,
+    newPassword: string
+  ) => {
+    const user = await UserRepository.findUserByEmail(email);
+    if (!user) {
+      throw throwCustomError("User with this email does not exist", 404);
+    }
+
+    const existingOtp = await UserRepository.findOtpByEmail(email);
+    if (!existingOtp) {
+      throw throwCustomError("No OTP found for this email", 404);
+    }
+
+    if (existingOtp.otp !== otp) {
+      throw throwCustomError("Invalid OTP", 400);
+    }
+
+    if (existingOtp.expiresAt && existingOtp.expiresAt < new Date()) {
+      throw throwCustomError("OTP has expired", 400);
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    if (!hashedPassword) {
+      throw throwCustomError("Failed to hash new password", 500);
+    }
+
+    const response = await UserRepository.passwordReset(email, otp, hashedPassword);
+
+    return "Password has been reset successfully.";
+  };  
+
   // product section
 
-  static createProduct = async (product: product) => {
+  static createProduct = async (
+    product: product,
+    userId: Types.ObjectId,
+    path: string
+  ) => {
     if (!product) {
       throw throwCustomError("Product data is required", 400);
     }
@@ -224,13 +353,17 @@ export class AppService {
 
     const { productName, productPrice, quantity } = product;
 
-    // Basic validation
-    if (!productName || !productPrice || !quantity) {
-      throw throwCustomError(
-        "Product name, price, and quantity are required",
-        400
-      );
+    // Explicit validation
+    if (!productName) {
+      throw throwCustomError("Product name is required", 400);
     }
+
+    const price = Number(product.productPrice);
+    const qty = Number(product.quantity);
+
+    //sku
+    const sku = "SKU-" + Date.now();  // simple example
+    product.sku = sku;
 
     // Slug creation logic
 
@@ -241,15 +374,28 @@ export class AppService {
       .replace(/[^a-z0-9\-]/g, "")
       .replace(/\-{2,}/g, "-");
 
-    console.log(slugs);
+    let uniqueSlug = slugs;
+    let count = 1;
+    while (await ProductRepository.findBySlug(uniqueSlug)) {
+      uniqueSlug = `${slugs}-${count}`;
+      count++;
+    }
 
-    product.slug = slugs;
+    console.log(uniqueSlug);
 
-    if (isNaN(productPrice) || productPrice <= 0) {
+    product.slug = uniqueSlug;
+    
+
+    const user = await UserRepository.findUserById(userId);
+    if (!user) {
+      throw throwCustomError("User not found", 404);
+    }
+
+    if (isNaN(price) || price <= 0) {
       throw throwCustomError("Product price must be a positive number", 400);
     }
 
-    if (isNaN(quantity) || quantity < 0) {
+    if (isNaN(qty) || qty < 0) {
       throw throwCustomError("Quantity must be a non-negative number", 400);
     }
 
@@ -260,7 +406,10 @@ export class AppService {
 
     const response = await ProductRepository.addProduct({
       ...product,
-    });
+      productPrice: price,
+      quantity: qty,
+      image: path,
+    }, userId);
 
     return response;
   };
@@ -404,4 +553,18 @@ export class AppService {
       //  updatedProduct,
     };
   };
+
+  //cart section service
+
+  static createCart = async (userId: Types.ObjectId) => {
+     if (!userId) {
+      throw new Error("User ID is required to fetch the cart.");
+    }
+    const existingCart = await ProductRepository.getCart(userId);
+    if (existingCart) {
+      return existingCart;
+    }
+    const cart = await CartModel.create({ userId, items: [] ,totalPrice: 0});
+    return cart;
+  }
 }

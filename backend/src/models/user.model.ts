@@ -11,6 +11,7 @@ import mongoose from "mongoose";
   gender: { type: String, required: true },
   DOB: { type: Date, required: true },
   phoneNumber: { type: String, required: true },
+  is_virified: { type: Boolean, default: false },
   address: {
     street: { type: String },
     city: { type: String },

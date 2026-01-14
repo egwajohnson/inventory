@@ -29,8 +29,13 @@ export const userschema = Joi.object({
     state: Joi.string(),
     postcode: Joi.number(),
   },
-  position: Joi.string().required()
+  position: Joi.string().required(),
+  image: Joi.string().uri(),  
 
 });
-
-
+export const profileSchema = Joi.object({
+  imageUrl: Joi.string().uri().required(),
+  imageType: Joi.string().valid("jpg", "jpeg", "png", "gif", "webp").required(),
+  imageSize: Joi.number().max(5 * 1024 * 1024).required(), // Max 5MB
+  publicId: Joi.string().required(),
+});

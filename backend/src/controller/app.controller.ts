@@ -1,8 +1,9 @@
 import epress, { response } from "express";
 import { AppService } from "../service/app.service";
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
+import { throwCustomError } from "../middleware/errorHandle.middleware";
 import { get } from "mongoose";
-
+import { IRequest } from "../middleware/auth.middleware";
 export class AppController {
   static preRegister = async (req: Request, res: Response) => {
     try {
@@ -14,14 +15,20 @@ export class AppController {
     }
   };
 
-  static createUser = async (req: Request, res: Response) => {
+  static createUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      //    const path = req.file?.path;
-      const user = req.body;
+      // const filePath = req.file?.path;
+      // const user = req.body;
+      const file = req.file;
+      const user  = req.body;
+      console.log("Received body:", user);
+      console.log("Received file:", file);
+       if (!file) {
+      throw throwCustomError("User image is required", 400);
+    }
+      //user.image = filePath;
 
-      //   user.image = path;
-
-      const response = await AppService.createUser(user);
+      const response = await AppService.createUser(user, file);
       res.status(201).json(response);
     } catch (error: any) {
       console.log("Error creating user:", error);
@@ -39,6 +46,24 @@ export class AppController {
     }
   };
 
+  static uploadProfileImage = async (req: Request, res: Response) => {
+    try {
+      const userId = req.body;
+      const { path } = req.body;
+      console.log("Received body:", req.body);
+      const filePath = req.file?.path;
+      const response = await AppService.uploadProfileImage(userId as any, {
+        ...path,
+        imageUrl: filePath,
+      });
+      res.status(201).json(response);
+      console.log("Profile image uploaded successfully:", response);
+    } catch (error: any) {
+      console.log("Error uploading profile image:", error);
+      res.status(400).json({ success: false, payload: error.message.details });
+    }
+  };
+
   static deleteUser = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
@@ -52,17 +77,16 @@ export class AppController {
 
   static deleteUserByEmail = async (req: Request, res: Response) => {
     try {
-      const{ email} = req.body;
+      const { email } = req.body;
       console.log("type of email:", typeof email, "value:", email);
       const response = AppService.deleteUserByEmail(email);
-      console.log(response)
-      res.status(200).json({success:true, payload:"User Deleted"});
-      
-    } catch (error:any) {
+      console.log(response);
+      res.status(200).json({ success: true, payload: "User Deleted" });
+    } catch (error: any) {
       res.status(400).json({
-        success:false,
-        message:error.message
-      })
+        success: false,
+        message: error.message,
+      });
     }
   };
 
@@ -80,47 +104,76 @@ export class AppController {
   static loginUser = async (req: Request, res: Response) => {
     try {
       const { email, password } = req.body;
+      const ipAddress = req.ip as string;
+      const userAgent = req.get("User-Agent") || "";
 
       if (!email || !password) {
         return res
           .status(400)
           .json({ success: false, message: "Email and password are required" });
       }
-      const response = await AppService.loginUser(email, password);
+      const response = await AppService.loginUser(email, password, ipAddress, userAgent);
+      return res.status(200).json({ success: true, payload: response });
     } catch (error: any) {
-       console.error("Login error:", error);
+      console.error("Login error:", error);
       return res.status(404).json({ success: false, payload: error.message });
+    }
+  };
+
+  static createOtp = async (req: Request, res: Response) => {
+    try {
+      const { email } = req.body; 
+      if (!email) {
+        throw throwCustomError("Email is required", 400);
+      } 
+      const response = await AppService.otpCreate(email);
+      res.status(201).json({ success: true, payload: response });
+    } catch (error: any) {
+      res.status(400).json({ success: false, payload: error.message });
+    }
+  };
+
+  static passwordReset = async (req: Request, res: Response) => {
+    try {
+      const { email, otp, newPassword } = req.body;
+
+      const response = await AppService.passwordReset(email, otp, newPassword);
+      res.status(200).json({ success: true, payload: response });
+    } catch (error: any) {
+      res.status(400).json({ success: false, payload: error.message });
     }
   };
 
   // product section
 
-  static createProduct = async (req: Request, res: Response) => {
-  try {
-    const product = req.body;
+  static createProduct = async (
+    req: IRequest,
+    res: Response
+  ): Promise<Response> => {
+    try {
+      const userId = req.user.id;
+      console.log("Authenticated user ID:", userId);
+      const product = req.body;
+      console.log("Received body:", product);
 
-    // Handle file upload (e.g., product image)
-    const filePath = req.file?.path;
-    console.log("Received file:", req.file);
-    if (!filePath) {
-      return res.status(400).json({ error: "Product image is missing" });
+      if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: "Product image is required",
+      });
     }
+      const path = req.file.path;
+      product.image = path;
 
-    // Attach image path to product data
-    product.file = filePath;
-
-    // Create product using service
-    const response = await AppService.createProduct(product);
-
-    return res.status(201).json({ success: true, payload: response });
-  } catch (error: any) {
-    return res.status(400).json({
-      success: false,
-      error: error.message || "Something went wrong",
-    });
-  }
-};
-
+      const response = await AppService.createProduct(product, userId, path);
+      return res.status(201).json({ success: true, payload: response });
+    } catch (error: any) {
+      return res.status(400).json({
+        success: false,
+        error: error.message || "Something went wrong",
+      });
+    }
+  };
 
   static getProducts = async (req: Request, res: Response) => {
     try {

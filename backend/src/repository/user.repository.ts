@@ -2,19 +2,30 @@ import express from "express";
 import { UserModel } from "../models/user.model";
 import { IAddUser } from "../interface/user.interface";
 import { userschema } from "../validation/user.schemal";
+import {ProfileModel} from "../models/profile.model";
 import { Types } from "mongoose";
 import { OtpModel } from "../models/otp.model";
 import { throwCustomError } from "../middleware/errorHandle.middleware";
+import path from "path/win32";
 
 export class UserRepository {
-  static createUser = async (user: IAddUser) => {
-    const isvalid = userschema.validate(user);
+  static createUser = async (user: any) => {
 
-    //  if (!path) throw new Error("No file found");
+    //if (!user.image) throw new Error("No file found");
 
-    const response = await UserModel.create({
-      ...user,
-      //  filePath: path
+    const response = await UserModel.create(user);
+
+    return response;
+  };
+
+  static uploadProfileImage = async (userId: Types.ObjectId, path: { imageUrl: string, imageType: string, imageSize: number, publicId: string }) => {
+    if (!userId) {
+      throw new Error("User ID is required");
+    }
+
+    const response = await ProfileModel.create({
+      userId,
+    ...path
     });
 
     return response;
@@ -39,12 +50,12 @@ export class UserRepository {
     return response;
   };
 
-  static loginUser = async (email: string): Promise<any> => {
+  static loginUser = async (email: string, password: string, ipAddress: string, userAgent: string): Promise<any> => {
     if (!email) {
       throw new Error("Email and password are required");
     }
 
-    const response = await UserModel.findOne({ email });
+    const response = await UserModel.findOne({ email }).select("+password");
 
     if (!response) {
       throw new Error("User not found");
@@ -54,13 +65,32 @@ export class UserRepository {
   };
 
   static otpCreate = async (email: string, otp: string) => {
-    const response = await OtpModel.create({
-      email,
+  return OtpModel.findOneAndUpdate(
+    { email },
+    {
       otp,
-    });
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
+    },
+    {
+      upsert: true,
+      new: true,
+    }
+  );
+};
 
+static findOtpByEmail = async (email: string) => {
+    const response = await OtpModel.findOne({ email });
     return response;
-  };
+  }
+
+static passwordReset = async (email: string, otp: string, newPassword: string) => {
+    const response = await UserModel.findOneAndUpdate(
+      { email },
+      { password: newPassword , is_virified: true },
+      { new: true }
+    ).select("-password  -__v");
+    return response;
+  }
 
   static getUsers = async () => {
     const response = await UserModel.find()

@@ -3,13 +3,14 @@ import Express from "express";
 export interface product {
   productName: string;
   productPrice: number;
-  slug?: string; // Optional field for URL-friendly identifier
+  slug?: string; 
+  sku?: string;
   quantity: number;
   description: string;
-  category?: string; // Optional field
-  file?: string;
-  createdAt?: Date; // Optional field for creation timestamp
-  updatedAt?: Date; // Optional field for last update timestamp
+  category?: string; 
+  image?: string;
+  createdAt?: Date; 
+  updatedAt?: Date;
 }
 
 export interface IProductUpdate {

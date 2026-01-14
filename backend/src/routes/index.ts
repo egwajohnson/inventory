@@ -1,9 +1,8 @@
 import  express  from "express";
 import { AppController } from "../controller/app.controller";
+import{uploadMiddleware} from "../middleware/uploadsMiddleware";
 import {authMiddleware} from "../middleware/auth.middleware";
 import { upload } from "../config/multer.config";
-import {DB_CONNECTION_URL, PORT} from "../config/system.variable"
-//import { upload } from "../config/multer.config";
 
 import dotenv from "dotenv";  
 dotenv.config();
@@ -12,14 +11,17 @@ const router = express.Router();
 
 router.post("/user/pre-register", AppController.preRegister);
 router.post("/user", AppController.createUser);
+router.post("/users/profile", upload.single("file"), AppController.uploadProfileImage);
 router.get("/user/get" ,authMiddleware as any, AppController.getUsers);
 router.delete("/user/delete/:id", authMiddleware as any, AppController.deleteUser);
 router.delete("/user/email", authMiddleware as any, AppController.deleteUserByEmail);
 router.get("/user/:id", authMiddleware as any, AppController.findUserById);
-//router.post("/user",upload.single("image"), AppController.createUser);
-router.post("/login", AppController.loginUser as any)
-router.post("/product", upload.single("file"), AppController.createProduct as any);
-//router.post("/product",upload.single("picture"), AppController.createProduct as any);
+router.post("/login", AppController.loginUser as any);
+router.post("/user/gen-otp", AppController.createOtp);
+router.post("/user/reset-password", AppController.passwordReset);
+
+//product routes
+router.post("/product",authMiddleware as any, upload.single("image"),uploadMiddleware as any, AppController.createProduct as any);
 router.delete("/productName",AppController.deleteProduct);
 router.get("/productName", AppController.findProductByName)
 router.get("/products/list", AppController.getProducts);

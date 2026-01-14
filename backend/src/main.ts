@@ -15,7 +15,7 @@ app.use(express.json());
 
 app.use(logger);
 
-app.use('/api', router);
+app.use('/api/v1', router);
 
 mongoConnection();
 app.listen(port, () => {

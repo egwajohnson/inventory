@@ -1,58 +1,73 @@
 import multer from "multer";
+import path from "path";
 import fs from "fs";
-// import path from "path";
 
-function creatFolder(path:string) {
+const UPLOAD_ROOT = path.join(process.cwd(), "uploads");
 
-if (!fs.existsSync(path)) {
-  try {
-    fs.mkdirSync(path);
-    console.log("Folder created successfully!");
-  } catch (err) {
-    console.error("Error creating folder:", err);
+function createFolder(folder: string) {
+  if (!fs.existsSync(folder)) {
+    fs.mkdirSync(folder, { recursive: true });
   }
-}
-
 }
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "./uploads");
+    let folder: string;
+
+    if (file.mimetype.startsWith("image/")) {
+      folder = "uploads/images";
+    } else if (file.mimetype.startsWith("video/")) {
+      folder = "uploads/videos";
+    } else if (file.mimetype.startsWith("audio/")) {
+      folder = "uploads/audios";
+    } else if (file.mimetype === "application/pdf") {
+      folder = "uploads/pdf";
+    } else {
+      return cb(new Error("Unsupported file type"), "");
+    }
+
+    createFolder(folder);
+    cb(null, folder);
   },
 
-  filename: function (req, file, cb) {
-    console.log(file);
-    const ext = file.originalname.split(".")[1]; 
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const baseName = path
+      .basename(file.originalname, ext)
+      .replace(/[^a-zA-Z0-9-_]/g, "_");
 
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const uniqueName = `${baseName}-${Date.now()}-${Math.round(
+      Math.random() * 1e9
+    )}${ext}`;
 
-    const allowedTypes = [
-      "audio/mpeg", 
-      "video/mp4", 
-      "application/pdf", 
-      "image/jpeg", "image/png", "image/gif"
-    ];
-    if (!allowedTypes.includes(file.mimetype.toLocaleLowerCase())) {
-      return cb(new Error("File type not allowed"), "");
-    }
-
-    if(file.mimetype.includes("video")) {
-      const iscreated = creatFolder("uploads/videos");
-       cb(null, "videos/"+file.originalname.split(".")[0] + "-" +`${uniqueSuffix}.${ext}`); 
-    } else if(file.mimetype.includes("audio")) {
-      const iscreated = creatFolder("uploads/audios");
-       cb(null, "audios/"+file.originalname.split(".")[0] + "-" +`${uniqueSuffix}.${ext}`);
-    } else if(file.mimetype.includes("pdf")) {
-      const iscreated = creatFolder("uploads/pdf");
-       cb(null, "pdf/"+file.originalname.split(".")[0] + "-" +`${uniqueSuffix}.${ext}`);
-    } else if(file.mimetype.includes("image")) {
-      const iscreated = creatFolder("uploads/images");
-       cb(null, "images/"+file.originalname.split(".")[0] + "-" +`${uniqueSuffix}.${ext}`);
-    }else{
-       return cb(new Error("File type not allowed"), "");
-    }
-   
-  }
+    cb(null, uniqueName);
+  },
 });
 
-export const upload = multer({ storage }); 
+const allowedTypes: Record<string, string[]> = {
+  "image/jpeg": [".jpg", ".jpeg"],
+  "image/png": [".png"],
+  "image/gif": [".gif"],
+  "video/mp4": [".mp4"],
+  "audio/mpeg": [".mp3"],
+  "application/pdf": [".pdf"],
+};
+
+const fileFilter: multer.Options["fileFilter"] = (req, file, cb) => {
+  const ext = path.extname(file.originalname).toLowerCase();
+  const allowedExts = allowedTypes[file.mimetype];
+
+  if (!allowedExts || !allowedExts.includes(ext)) {
+    return cb(new Error("File type not allowed"));
+  }
+
+  cb(null, true);
+};
+
+export const upload = multer({
+  storage,
+  fileFilter,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB
+  },
+});

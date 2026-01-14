@@ -2,16 +2,15 @@ import express from "express";
 import { product } from "../interface/product.interface";
 import { ProductModel } from "../models/product.model";
 import { SaleModel } from "../models/sale.model";
+import { CartModel } from "../models/cart.model";
 import { Types } from "mongoose";
 import { HistoryModel } from "../models/history.model";
-import { productschema } from "../validation/product.schemal";
 
 export class ProductRepository {
-  static async addProduct(product: product) {
+  static async addProduct(product: product, userId: Types.ObjectId) {
     const response = await ProductModel.create({
       ...product,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      userId
     });
     return response;
   }
@@ -37,6 +36,11 @@ export class ProductRepository {
         totalRecords: count,
       },
     };
+  }
+
+  static async findBySlug(slug:string){
+    const response = await ProductModel.findOne({slug});
+    return response;
   }
 
   static async findByName(productName: string): Promise<any> {
@@ -117,6 +121,7 @@ export class ProductRepository {
       quantity,
       totalPrice: total,
     });
+    return response;
   }
 
   static async producthistory(userId: Types.ObjectId, action: string) {
@@ -126,5 +131,17 @@ export class ProductRepository {
       timestamp: new Date(),
     });
     return response;
+  }
+
+  //cart section
+
+  static async createCart(userId: Types.ObjectId) {
+    const cart = await CartModel.create({ userId, items: [] ,totalPrice: 0});
+    return cart;
+  };
+
+  static async getCart(userId: Types.ObjectId) {
+    const cart = await CartModel.findOne({ userId }).populate('items.productId');
+    return cart;
   }
 }

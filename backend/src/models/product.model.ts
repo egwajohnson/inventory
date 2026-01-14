@@ -5,7 +5,7 @@ import mongoose, { Types } from "mongoose";
 const productSchema = new mongoose.Schema(
   {
     userId: { type: Types.ObjectId, ref: "User", required: true },
-    categoryId: { type: Types.ObjectId, ref: "Category", required: true },
+    // categoryId: { type: Types.ObjectId, ref: "Category", required: true },
     supplierId: { type: Types.ObjectId, ref: "Supplier" },
     productName: { type: String, required: true },
     productPrice: { type: String, required: true },
