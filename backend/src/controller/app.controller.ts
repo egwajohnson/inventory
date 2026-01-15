@@ -254,4 +254,27 @@ export class AppController {
       res.status(404).json({ success: false, payload: error.message });
     }
   };
+
+  //cart section controller
+
+  static createCart = async (req: IRequest, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const response = await AppService.createCart(userId);
+      res.status(201).json(response);
+    } catch (error: any) {
+      res.status(404).json({ success: false, payload: error.message });
+    }
+  };
+
+  static addToCart = async (req: IRequest, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const data = req.body;
+      const response = await AppService.addToCart(userId, data);
+      res.status(201).json(response);
+    } catch (error: any) {
+      res.status(404).json({ success: false, payload: error.message });
+    }
+  };
 }

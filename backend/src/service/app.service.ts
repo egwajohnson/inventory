@@ -5,20 +5,24 @@ import { otpTemplate } from "../util/otp-template";
 import { UserRepository } from "../repository/user.repository";
 import { ProductRepository } from "../repository/product.repository";
 import { IAddUser } from "../interface/user.interface";
-import { product } from "../interface/product.interface";
+import { Cart, product } from "../interface/product.interface";
 import { ProductModel } from "../models/product.model";
 import { JWT_SECRET, JWT_EXP } from "../config/system.variable";
 import { ImagePath } from "../interface/image.terface";
 import { preRegister } from "../interface/preReg.interface";
+import mongoose from "mongoose";
 import {
   userschema,
   preValidate,
   profileSchema,
 } from "../validation/user.schemal";
 import { throwCustomError } from "../middleware/errorHandle.middleware";
-import { productschema } from "../validation/product.schemal";
+import {
+  productschema,
+  updateCartItemSchema,
+} from "../validation/product.schemal";
 import jwt from "jsonwebtoken";
-import { Types } from "mongoose";
+import { ClientSession ,Types } from "mongoose";
 import path from "path";
 import { CartModel } from "../models/cart.model";
 
@@ -212,7 +216,12 @@ export class AppService {
     return response;
   };
 
-  static loginUser = async (email: string, password: string, ipAddress: string, userAgent: string): Promise<any> => {
+  static loginUser = async (
+    email: string,
+    password: string,
+    ipAddress: string,
+    userAgent: string
+  ): Promise<any> => {
     if (!email || !password) {
       throw throwCustomError("Email and password are required", 400);
     }
@@ -221,7 +230,12 @@ export class AppService {
       throw throwCustomError("Invalid email format", 400);
     }
 
-    const user = await UserRepository.loginUser(email, password, ipAddress, userAgent);
+    const user = await UserRepository.loginUser(
+      email,
+      password,
+      ipAddress,
+      userAgent
+    );
 
     if (!user) {
       throw throwCustomError("Invalid credentials", 401);
@@ -274,12 +288,12 @@ export class AppService {
       throw throwCustomError("User with this email does not exist", 404);
     }
     const existingOtp = await UserRepository.findOtpByEmail(email);
-  if (existingOtp) {
-    throw throwCustomError(
-      "OTP already exists. Please wait or verify the existing OTP.",
-      409
-    );
-  }
+    if (existingOtp) {
+      throw throwCustomError(
+        "OTP already exists. Please wait or verify the existing OTP.",
+        409
+      );
+    }
     const genOtp = await AppService.generateOtp(email);
     if (!genOtp || !genOtp.otp) {
       throw throwCustomError("Failed to generate OTP", 500);
@@ -298,7 +312,7 @@ export class AppService {
     //   otpTemplate
     // );
     return "OTP has been sent to your email to continue.";
-  }
+  };
 
   static passwordReset = async (
     email: string,
@@ -328,10 +342,14 @@ export class AppService {
       throw throwCustomError("Failed to hash new password", 500);
     }
 
-    const response = await UserRepository.passwordReset(email, otp, hashedPassword);
+    const response = await UserRepository.passwordReset(
+      email,
+      otp,
+      hashedPassword
+    );
 
     return "Password has been reset successfully.";
-  };  
+  };
 
   // product section
 
@@ -362,7 +380,7 @@ export class AppService {
     const qty = Number(product.quantity);
 
     //sku
-    const sku = "SKU-" + Date.now();  // simple example
+    const sku = "SKU-" + Date.now(); // simple example
     product.sku = sku;
 
     // Slug creation logic
@@ -384,7 +402,6 @@ export class AppService {
     console.log(uniqueSlug);
 
     product.slug = uniqueSlug;
-    
 
     const user = await UserRepository.findUserById(userId);
     if (!user) {
@@ -404,12 +421,15 @@ export class AppService {
       throw throwCustomError("Product already exists with this name", 400);
     }
 
-    const response = await ProductRepository.addProduct({
-      ...product,
-      productPrice: price,
-      quantity: qty,
-      image: path,
-    }, userId);
+    const response = await ProductRepository.addProduct(
+      {
+        ...product,
+        productPrice: price,
+        quantity: qty,
+        image: path,
+      },
+      userId
+    );
 
     return response;
   };
@@ -557,14 +577,71 @@ export class AppService {
   //cart section service
 
   static createCart = async (userId: Types.ObjectId) => {
-     if (!userId) {
-      throw new Error("User ID is required to fetch the cart.");
+    if (!userId) {
+      throw throwCustomError("User ID is required to fetch the cart.", 400);
     }
     const existingCart = await ProductRepository.getCart(userId);
     if (existingCart) {
       return existingCart;
     }
-    const cart = await CartModel.create({ userId, items: [] ,totalPrice: 0});
+    const cart = await CartModel.create({ userId, items: [], totalPrice: 0 });
     return cart;
-  }
+  };
+
+  static addToCart = async (userId: Types.ObjectId, data: Cart) => {
+    const { error, value } = updateCartItemSchema.validate(data);
+    if (error) {
+      throw throwCustomError(error.details[0].message, 400);
+    }
+
+    if (!userId) {
+      throw throwCustomError(
+        "User ID is required to add items to the cart.",
+        400
+      );
+    }
+
+    const useTransaction = process.env.USE_TRANSACTIONS === "true";
+    let session: ClientSession | undefined;
+
+    try {
+       if (useTransaction) {
+      const session = await mongoose.startSession();
+      session.startTransaction();
+    }
+      const cart = await ProductRepository.addToCart(userId, value, session);
+      if (!cart) {
+        throw throwCustomError("Failed to add item to cart", 500);
+      }
+      if(session){
+        await session.commitTransaction();
+      }
+      return cart;
+    } catch (error: any) {
+      if (session){
+        await session.abortTransaction();
+      }
+      throw error;
+    } finally {
+      if (session)  {
+        session.endSession();
+      }
+    }
+  };
+
+  //  static async updateCartItem(userId: Types.ObjectId, data: any) {
+  //   await updateCartItemSchema.validateAsync(data);
+
+  //   if (!userId) {
+  //     throw throwCustomError("Unauthorized", 401);
+  //   }
+
+  //   const cart = await CartRepository.addOrUpdateItem(userId, data);
+
+  //   if (!cart) {
+  //     throw throwCustomError("Cart not found", 404);
+  //   }
+
+  //   return cart;
+  // }
 }

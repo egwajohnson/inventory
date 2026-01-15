@@ -22,11 +22,15 @@ router.post("/user/reset-password", AppController.passwordReset);
 
 //product routes
 router.post("/product",authMiddleware as any, upload.single("image"),uploadMiddleware as any, AppController.createProduct as any);
-router.delete("/productName",AppController.deleteProduct);
-router.get("/productName", AppController.findProductByName)
+router.delete("/productName",authMiddleware as any, AppController.deleteProduct);
+router.get("/productName", authMiddleware as any, AppController.findProductByName)
 router.get("/products/list", AppController.getProducts);
 router.post("/product/update", AppController.updateProduct);
 router.patch("/product/update/quantity", AppController.updateProductQuantity);
 router.post("/product/sale", authMiddleware as any, AppController.saleProduct);
+
+//cart routes
+router.post("/cart/create", authMiddleware as any, AppController.createCart as any);
+router.post("/cart/add", authMiddleware as any, AppController.addToCart as any);
 
 export default router;

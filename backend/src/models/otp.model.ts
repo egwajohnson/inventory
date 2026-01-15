@@ -5,7 +5,7 @@ const otpSchema = new Schema({
   email: { type: String, required: true, unique: true, index: true },
   otp: { type: String, required: true },
   //TTL index: auto-delete after 1 hour ,
-  expiresAt: { type: Date, required: true, index: true },
+  expiresAt: { type: Date, required: true },
 
 },
  { timestamps: true }

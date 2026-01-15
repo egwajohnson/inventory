@@ -1,4 +1,5 @@
 import Express from "express";
+import { Types } from "mongoose";
 
 export interface product {
   productName: string;
@@ -7,19 +8,27 @@ export interface product {
   sku?: string;
   quantity: number;
   description: string;
+  discount?: number;
   category?: string; 
   image?: string;
-  createdAt?: Date; 
-  updatedAt?: Date;
+}
+export interface CartItem {
+  productId: Types.ObjectId; 
+  quantity: number;
+  productPrice: number;          
+  discount?: number;        
 }
 
-export interface IProductUpdate {
-  productName?: string;
-  productPrice?: number;
-  description?: string;
-  quantity?: number;
-  category?: string; // Optional field
-  updatedAt?: Date; // Optional field for last update timestamp
+export interface Cart {
+  productId: Types.ObjectId;
+  cartId?: Types.ObjectId;
+  quantity: number;
+  items:CartItem[];
+  totalPrice?: number;
+  coupon?: {
+    code: string;
+    discount?: number;
+  }
 }
 export interface ISale {
   productName: string;

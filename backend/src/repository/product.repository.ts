@@ -3,20 +3,21 @@ import { product } from "../interface/product.interface";
 import { ProductModel } from "../models/product.model";
 import { SaleModel } from "../models/sale.model";
 import { CartModel } from "../models/cart.model";
-import { Types } from "mongoose";
+import { Cart } from "../interface/product.interface";
+import { ClientSession, Types } from "mongoose";
 import { HistoryModel } from "../models/history.model";
 
 export class ProductRepository {
   static async addProduct(product: product, userId: Types.ObjectId) {
     const response = await ProductModel.create({
       ...product,
-      userId
+      userId,
     });
     return response;
   }
   static async getproduct(page: number, limit: number) {
     const skip = (page - 1) * limit;
-    const response = await ProductModel.find({}) 
+    const response = await ProductModel.find({})
       .lean()
       .skip(skip)
       .limit(limit)
@@ -38,8 +39,8 @@ export class ProductRepository {
     };
   }
 
-  static async findBySlug(slug:string){
-    const response = await ProductModel.findOne({slug});
+  static async findBySlug(slug: string) {
+    const response = await ProductModel.findOne({ slug });
     return response;
   }
 
@@ -136,12 +137,102 @@ export class ProductRepository {
   //cart section
 
   static async createCart(userId: Types.ObjectId) {
-    const cart = await CartModel.create({ userId, items: [] ,totalPrice: 0});
-    return cart;
-  };
-
-  static async getCart(userId: Types.ObjectId) {
-    const cart = await CartModel.findOne({ userId }).populate('items.productId');
+    const cart = await CartModel.create({ userId, items: [], totalPrice: 0 });
     return cart;
   }
+
+  static async getCart(userId: Types.ObjectId) {
+    const cart = await CartModel.findOne({ userId }).populate(
+      "items.productId"
+    );
+    return cart;
+  }
+
+  static addToCart = async (
+    userId: Types.ObjectId,
+    data: Cart,
+    session?: ClientSession
+  ) => {
+    const { cartId, productId, quantity } = data;
+
+    if (!userId || !productId) {
+      throw new Error("User ID and Product ID are required");
+    }
+
+    // 1️⃣ Get product price
+    const product = await ProductModel.findById(productId).select("productPrice").session(session ?? null);
+    if (!product) throw new Error("Product not found");
+
+    const itemPrice = product.productPrice;
+
+    //  Initialize cart variable
+    let cart: any = null;
+
+    //  Remove item if quantity = 0
+    if (quantity === 0) {
+      cart = await CartModel.findOneAndUpdate(
+        { _id: cartId, userId },
+        { $pull: { items: { productId } } },
+        { new: true, session }
+      );
+    } else {
+      //  Increment quantity if item exists
+      cart = await CartModel.findOneAndUpdate(
+        { _id: cartId, userId, "items.productId": productId },
+        { $set: { 
+          "items.$.quantity": quantity,
+          "items.$.productPrice": itemPrice
+         }
+         },
+        { new: true, session }
+      );
+
+      // Push new item if it doesn’t exist
+      if (!cart) {
+        cart = await CartModel.findOneAndUpdate(
+          { _id: cartId, userId },
+          { $push: { items: { productId, quantity, productPrice: itemPrice } } },
+          { new: true, session }
+        );
+
+        // Create cart if it doesn’t exist
+        if (!cart) {
+          const created = await CartModel.create(
+            [{ userId, 
+              items: [{ productId, quantity, productPrice: itemPrice }],
+              totalPrice: quantity * itemPrice,
+             }],
+            { session }
+          );
+          cart = created && created.length > 0 ? created[0] : null;
+          if (!cart) throw new Error("Failed to create cart");
+        }
+      }
+    }
+   
+    if (!cart) {
+  throw new Error("Cart not found after update");
+}
+    // 7️⃣ Recalculate totalPrice
+    const cartQuery = CartModel.findOne({ _id: cart._id, userId });
+    const finalCart = session ? await cartQuery.session(session) : await cartQuery;
+
+    if (!finalCart) throw new Error("Cart not found after update");
+
+    finalCart.totalPrice = finalCart.items.reduce(
+      (sum, item) => sum + item.quantity * (item.productPrice ?? 0),
+      0
+    );
+    // finalCart.totalPrice = finalCart.items.reduce((sum, item) => {
+    //   const quantity = Number(item.quantity ?? 0);
+    //   const productPrice = Number(item.productPrice ?? 0);
+    //   const discount = Number(item.discount ?? 0);
+    //   return sum + quantity * Math.max(productPrice - discount, 0);
+    // }, 0);
+
+    await finalCart.save({ session });
+
+    return finalCart;
+  };
+
 }
