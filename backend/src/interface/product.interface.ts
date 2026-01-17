@@ -4,32 +4,37 @@ import { Types } from "mongoose";
 export interface product {
   productName: string;
   productPrice: number;
-  slug?: string; 
+  slug?: string;
   sku?: string;
   quantity: number;
   description: string;
   discount?: number;
-  category?: string; 
+  category?: string;
   image?: string;
 }
 export interface CartItem {
-  productId: Types.ObjectId; 
+  productId: Types.ObjectId;
   quantity: number;
-  productPrice: number;          
-  discount?: number;        
+  productPrice: number;
+  discount?: number;
 }
 
 export interface Cart {
-  productId: Types.ObjectId;
+  userId: Types.ObjectId;
+  cartId?: Types.ObjectId;
+  items: CartItem[];
+  totalPrice?: number;
+  couponCode?: {
+    code: string;
+    discount: number;
+  };
+}
+
+export interface AddToCartDTO {
   cartId?: Types.ObjectId;
   quantity: number;
-  items:CartItem[];
-  totalPrice?: number;
-  coupon?: {
-    code: string;
-    discount?: number;
-  }
 }
+
 export interface ISale {
   productName: string;
   productPrice: number;
