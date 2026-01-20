@@ -6,7 +6,6 @@ import {ProfileModel} from "../models/profile.model";
 import { Types } from "mongoose";
 import { OtpModel } from "../models/otp.model";
 import { throwCustomError } from "../middleware/errorHandle.middleware";
-import path from "path/win32";
 
 export class UserRepository {
   static createUser = async (user: any) => {

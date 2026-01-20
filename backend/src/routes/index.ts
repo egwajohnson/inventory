@@ -33,4 +33,9 @@ router.post("/product/sale", authMiddleware as any, AppController.saleProduct);
 router.post("/cart/create", authMiddleware as any, AppController.createCart as any);
 router.post("/cart/add", authMiddleware as any, AppController.addToCart as any);
 
+//coupon routes
+router.post("/create/coupon", authMiddleware as any, AppController.createCoupon as any);
+router.post("/apply/coupon", authMiddleware as any, AppController.applyCouponToCart as any);
+router.get("/coupons/list", authMiddleware as any, AppController.getCoupons as any);
+
 export default router;

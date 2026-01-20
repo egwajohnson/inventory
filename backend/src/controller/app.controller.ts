@@ -277,4 +277,34 @@ export class AppController {
       res.status(404).json({ success: false, payload: error.message });
     }
   };
+
+  static createCoupon = async (req: IRequest, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const data = req.body;
+      const response = await AppService.createCoupon(userId, data);
+      res.status(201).json(response);
+    } catch (error: any) {
+      res.status(404).json({ success: false, payload: error.message });
+    }
+  };
+
+  static applyCouponToCart = async (req: IRequest, res: Response)=> {
+    try {
+      const userId = req.user.id;
+      const { couponCode } = req.body;
+      const response = await AppService.applyCouponToCart(userId, couponCode);
+      res.status(200).json(response);
+    } catch (error: any) {
+      res.status(404).json({ success: false, payload: error.message });
+    }
+  };
+  static getCoupons = async (req: IRequest, res: Response) => {
+    try {
+      const response = await AppService.getCoupons();
+      res.status(200).json(response);
+    } catch (error: any) {
+      res.status(404).json({ success: false, payload: error.message });
+    }
+  };
 }

@@ -1,11 +1,15 @@
 import bcrypt from "bcrypt";
 import crypto from "crypto";
+import { characters } from "../config/system.variable";
+import { UserRole } from "../interface/user.interface";
 import { sendMail } from "../util/nodemailer";
 import { otpTemplate } from "../util/otp-template";
+import { accountTemplate } from "../util/user-template";
+import { loginTemplate } from "../util/login-templete";
 import { UserRepository } from "../repository/user.repository";
 import { ProductRepository } from "../repository/product.repository";
-import { IAddUser } from "../interface/user.interface";
-import { Cart, product } from "../interface/product.interface";
+
+import { AddToCartDTO, Cart, product } from "../interface/product.interface";
 import { ProductModel } from "../models/product.model";
 import { JWT_SECRET, JWT_EXP } from "../config/system.variable";
 import { ImagePath } from "../interface/image.terface";
@@ -22,9 +26,12 @@ import {
   updateCartItemSchema,
 } from "../validation/product.schemal";
 import jwt from "jsonwebtoken";
-import { ClientSession ,Types } from "mongoose";
+import { ClientSession, Types } from "mongoose";
 import path from "path";
 import { CartModel } from "../models/cart.model";
+import { ICoupon } from "../interface/coupon.interface";
+import { UserModel } from "../models/user.model";
+import { CouponModel } from "../models/coupon.model";
 
 export class AppService {
   static preRegister = async (user: preRegister) => {
@@ -32,7 +39,7 @@ export class AppService {
     if (error) {
       throw throwCustomError(
         `Validation error: ${error.details[0].message}`,
-        400
+        400,
       );
     }
 
@@ -53,7 +60,7 @@ export class AppService {
           name: `${user.email}`,
         },
       },
-      otpTemplate
+      otpTemplate,
     );
 
     return "OTP has been sent to your email to continue.";
@@ -68,7 +75,7 @@ export class AppService {
     if (error) {
       throw throwCustomError(
         `Validation error: ${error.details[0].message}`,
-        400
+        400,
       );
     }
 
@@ -98,7 +105,7 @@ export class AppService {
     if (existingUser) {
       throw throwCustomError(
         "Cannot create: User with this email already exists",
-        400
+        400,
       );
     }
 
@@ -116,6 +123,18 @@ export class AppService {
     const response = await UserRepository.createUser(payload);
 
     console.log("User created successfully:", response);
+
+    sendMail(
+      {
+        email: user.email,
+        subject: "Account Successfully Created",
+        emailInfo: {
+          firstName: `${user.firstName}`,
+          email: `${user.email}`,
+        },
+      },
+      accountTemplate,
+    );
 
     return response;
   };
@@ -152,7 +171,7 @@ export class AppService {
     if (error) {
       throw throwCustomError(
         `Validation error: ${error.details[0].message}`,
-        400
+        400,
       );
     }
     if (!userId) {
@@ -169,7 +188,7 @@ export class AppService {
 
     if (!allowedTypes.includes(path.imageType)) {
       throw new Error(
-        "Invalid image type. Only JPEG, PNG, and WEBP are allowed."
+        "Invalid image type. Only JPEG, PNG, and WEBP are allowed.",
       );
     }
 
@@ -220,7 +239,7 @@ export class AppService {
     email: string,
     password: string,
     ipAddress: string,
-    userAgent: string
+    userAgent: string,
   ): Promise<any> => {
     if (!email || !password) {
       throw throwCustomError("Email and password are required", 400);
@@ -234,7 +253,7 @@ export class AppService {
       email,
       password,
       ipAddress,
-      userAgent
+      userAgent,
     );
 
     if (!user) {
@@ -243,7 +262,7 @@ export class AppService {
 
     const isPasswordValid = await bcrypt.compare(
       password,
-      user.password as string
+      user.password as string,
     );
 
     if (!isPasswordValid) {
@@ -260,6 +279,19 @@ export class AppService {
     if (!jwttoken) throw throwCustomError("Unable to login", 500);
 
     console.log("JWT Token:", jwttoken);
+
+    sendMail(
+      {
+        email: user.email,
+        subject: "LOGIN NOTIFICATION",
+        emailInfo: {
+          firstName: user.firstName,
+          email: user.email,
+          loginTime: new Date().toLocaleString(),
+        },
+      },
+      loginTemplate,
+    );
 
     return {
       message: `Successful login. Welcome ${user.firstName}`,
@@ -291,7 +323,7 @@ export class AppService {
     if (existingOtp) {
       throw throwCustomError(
         "OTP already exists. Please wait or verify the existing OTP.",
-        409
+        409,
       );
     }
     const genOtp = await AppService.generateOtp(email);
@@ -317,7 +349,7 @@ export class AppService {
   static passwordReset = async (
     email: string,
     otp: string,
-    newPassword: string
+    newPassword: string,
   ) => {
     const user = await UserRepository.findUserByEmail(email);
     if (!user) {
@@ -345,7 +377,7 @@ export class AppService {
     const response = await UserRepository.passwordReset(
       email,
       otp,
-      hashedPassword
+      hashedPassword,
     );
 
     return "Password has been reset successfully.";
@@ -356,7 +388,7 @@ export class AppService {
   static createProduct = async (
     product: product,
     userId: Types.ObjectId,
-    path: string
+    path: string,
   ) => {
     if (!product) {
       throw throwCustomError("Product data is required", 400);
@@ -365,7 +397,7 @@ export class AppService {
     if (error) {
       throw throwCustomError(
         `Validation error: ${error.details[0].message}`,
-        400
+        400,
       );
     }
 
@@ -428,7 +460,7 @@ export class AppService {
         quantity: qty,
         image: path,
       },
-      userId
+      userId,
     );
 
     return response;
@@ -477,14 +509,14 @@ export class AppService {
 
     const productupdat = await ProductRepository.updateProduct(
       productName,
-      productPrice
+      productPrice,
     );
 
     return productupdat;
   };
   static updateProductQuantity = async (
     productName: string,
-    quantity: number
+    quantity: number,
   ) => {
     if (!productName || quantity === undefined) {
       throw throwCustomError("Product name and quantity are required", 400);
@@ -492,7 +524,7 @@ export class AppService {
 
     const productupdat = await ProductRepository.updatequantity(
       productName,
-      quantity
+      quantity,
     );
 
     return productupdat;
@@ -504,7 +536,7 @@ export class AppService {
       productPrice: number;
       quantity: number;
       totalPrice: number;
-    }
+    },
   ) => {
     const { productName, productPrice, quantity, totalPrice } = data;
 
@@ -513,7 +545,7 @@ export class AppService {
     if (data.productPrice <= 0 || data.quantity <= 0 || data.totalPrice <= 0) {
       throw throwCustomError(
         "Product price, quantity, and total price must be positive numbers",
-        400
+        400,
       );
     }
 
@@ -525,7 +557,7 @@ export class AppService {
     ) {
       throw throwCustomError(
         "Product name, product price, quantity, and total price are required",
-        400
+        400,
       );
     }
 
@@ -545,7 +577,7 @@ export class AppService {
     // Update product (e.g., reduce stock or mark as sold)
     const updatedProduct = await ProductRepository.saleProduct(
       convertedProductId,
-      data
+      data,
     );
 
     if (updatedProduct) {
@@ -555,7 +587,7 @@ export class AppService {
         productName,
         productPrice,
         quantity,
-        totalPrice
+        totalPrice,
       );
     }
 
@@ -589,6 +621,7 @@ export class AppService {
   };
 
   static addToCart = async (userId: Types.ObjectId, data: Cart) => {
+    const { cartId } = data;
     const { error, value } = updateCartItemSchema.validate(data);
     if (error) {
       throw throwCustomError(error.details[0].message, 400);
@@ -597,7 +630,7 @@ export class AppService {
     if (!userId) {
       throw throwCustomError(
         "User ID is required to add items to the cart.",
-        400
+        400,
       );
     }
 
@@ -605,25 +638,25 @@ export class AppService {
     let session: ClientSession | undefined;
 
     try {
-       if (useTransaction) {
-      const session = await mongoose.startSession();
-      session.startTransaction();
-    }
+      if (useTransaction) {
+        session = await mongoose.startSession();
+        session.startTransaction();
+      }
       const cart = await ProductRepository.addToCart(userId, value, session);
       if (!cart) {
         throw throwCustomError("Failed to add item to cart", 500);
       }
-      if(session){
+      if (session) {
         await session.commitTransaction();
       }
       return cart;
     } catch (error: any) {
-      if (session){
+      if (session) {
         await session.abortTransaction();
       }
       throw error;
     } finally {
-      if (session)  {
+      if (session) {
         session.endSession();
       }
     }
@@ -644,4 +677,130 @@ export class AppService {
 
   //   return cart;
   // }
+
+  // coupon section service
+  static createCoupon = async (userId: Types.ObjectId, data: ICoupon) => {
+    if (!userId) {
+      throw throwCustomError("User ID is required to create a coupon.", 400);
+    }
+    const user = (await UserModel.findById(userId)) as { role: UserRole };
+    if (!user) {
+      throw throwCustomError("User not found.", 404);
+    }
+    // if (user.role !== "admin") {
+    //   throw throwCustomError("Only admin users can create coupons.", 403);
+    // }
+
+    if (!data.discountType || !data.discountValue) {
+      throw throwCustomError("Discount value and type are required.", 400);
+    }
+
+    if (data.discountValue <= 0) {
+      throw throwCustomError("Discount value must be greater than zero.", 400);
+    }
+
+    if (data.discountType === "percentage" && data.discountValue > 100) {
+      throw throwCustomError("Percentage discount cannot exceed 100%.", 400);
+    }
+
+    const couponCode = AppService.generateCouponCode(8);
+    console.log("Generated Coupon Code:", couponCode);
+    data.code = couponCode;
+    if (!data.validFrom) {
+      data.validFrom = new Date();
+    }
+
+    const coupon = await ProductRepository.createCoupon(userId, data);
+    return coupon;
+  };
+
+  static generateCouponCode = (length: number): string => {
+    let result = "";
+    const charactersLength = characters.length;
+    for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  };
+
+  static calculateDiscount(orderTotal: number, coupon?: ICoupon | null) {
+    let discountAmount = 0;
+
+    if (!coupon || orderTotal < coupon.minOrderValue) {
+      return { discountAmount: 0, finalAmount: orderTotal };
+    }
+
+    if (coupon.discountType === "percentage") {
+      discountAmount = (orderTotal * coupon.discountValue) / 100;
+    } else {
+      discountAmount = coupon.discountValue;
+    }
+
+    discountAmount = Math.min(discountAmount, orderTotal);
+
+    return {
+      discountAmount,
+      finalAmount: orderTotal - discountAmount,
+    };
+  }
+
+  static applyCouponToCart = async (
+    userId: Types.ObjectId,
+    couponCode: string,
+    session?: ClientSession,
+  ) => {
+    if (!userId) {
+      throw throwCustomError("User ID is required to apply a coupon.", 400);
+    }
+    if (!couponCode) {
+      throw throwCustomError("Coupon code is required.", 400);
+    }
+    const cartQuery = CartModel.findOne({ userId });
+    if (session) cartQuery.session(session);
+
+    const cart = await cartQuery;
+    if (!cart) {
+      throw throwCustomError("Cart not found for the user.", 404);
+    }
+
+    const coupon = await CouponModel.findOne({
+      code: couponCode.toLowerCase(),
+      active: true,
+    })
+      .session(session ?? null)
+      .lean<ICoupon>();
+
+    if (!coupon) {
+      throw throwCustomError("Invalid or inactive coupon code.", 404);
+    }
+
+    if (cart.totalPrice === undefined) {
+      throw throwCustomError("Cart total price is missing.", 500);
+    }
+
+    const { discountAmount, finalAmount } = this.calculateDiscount(
+      cart.totalPrice,
+      coupon,
+    );
+
+    if (discountAmount <= 0) {
+      throw throwCustomError("Coupon does not apply to this cart.", 400);
+    }
+
+    const updatedCart = await ProductRepository.applyCouponToCart(
+      cart._id,
+      { code: coupon.code, discount: coupon.discountValue },
+      finalAmount,
+      session,
+    );
+    return updatedCart;
+  };
+
+  static getCoupons = async () => {
+    const response = await ProductRepository.getCoupons();
+    if (!response || response.length === 0) {
+      throw throwCustomError("No coupons found", 404);
+    }
+    return response;
+  };
 }

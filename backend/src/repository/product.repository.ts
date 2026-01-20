@@ -3,10 +3,12 @@ import { product } from "../interface/product.interface";
 import { ProductModel } from "../models/product.model";
 import { SaleModel } from "../models/sale.model";
 import { CartModel } from "../models/cart.model";
-import { AddToCartDTO , Cart} from "../interface/product.interface";
+import { CouponModel } from "../models/coupon.model";
+import { AddToCartDTO, Cart } from "../interface/product.interface";
 import { ClientSession, Types } from "mongoose";
 import { HydratedDocument } from "mongoose";
 import { HistoryModel } from "../models/history.model";
+import { ICoupon } from "../interface/coupon.interface";
 
 export class ProductRepository {
   static async addProduct(product: product, userId: Types.ObjectId) {
@@ -64,7 +66,7 @@ export class ProductRepository {
     const response = await ProductModel.findOneAndUpdate(
       { productName },
       { productPrice },
-      { new: true }
+      { new: true },
     ).select("-__v");
     return response;
   }
@@ -72,7 +74,7 @@ export class ProductRepository {
     const response = await ProductModel.findOneAndUpdate(
       { productName },
       { quantity },
-      { new: true }
+      { new: true },
     ).select("-__v");
     return response;
   }
@@ -84,7 +86,7 @@ export class ProductRepository {
       productPrice: number;
       quantity: number;
       totalPrice: number;
-    }
+    },
   ) {
     if (
       !productId ||
@@ -94,7 +96,7 @@ export class ProductRepository {
       typeof data.totalPrice !== "number"
     ) {
       throw new Error(
-        "Product name, product price, quantity, and total price are required and must be valid"
+        "Product name, product price, quantity, and total price are required and must be valid",
       );
     }
 
@@ -112,7 +114,7 @@ export class ProductRepository {
     producName: string,
     quantity: any,
     productPrice: number,
-    totalPrice: number
+    totalPrice: number,
   ) {
     const total = quantity * productPrice;
 
@@ -144,25 +146,24 @@ export class ProductRepository {
 
   static async getCart(userId: Types.ObjectId) {
     const cart = await CartModel.findOne({ userId }).populate(
-      "items.productId"
+      "items.productId",
     );
     return cart;
   }
 
   static addToCart = async (
     userId: Types.ObjectId,
-    productId: Types.ObjectId,
     data: AddToCartDTO,
-    session?: ClientSession
+    session?: ClientSession,
   ) => {
     const { cartId, quantity } = data;
 
-    if (!userId || !productId) {
+    if (!userId || !data.productId) {
       throw new Error("User ID and Product ID are required");
     }
 
     // Get product price
-    const product = await ProductModel.findById(productId)
+    const product = await ProductModel.findById(data.productId)
       .select("productPrice")
       .session(session ?? null);
     if (!product) throw new Error("Product not found");
@@ -170,26 +171,26 @@ export class ProductRepository {
     const itemPrice = product.productPrice;
 
     //  Initialize cart variable
-   let cart: HydratedDocument<Cart> | null = null;
+    let cart: HydratedDocument<Cart> | null = null;
 
     //  Remove item if quantity = 0
     if (quantity === 0) {
       cart = await CartModel.findOneAndUpdate(
         { _id: cartId, userId },
-        { $pull: { items: { productId } } },
-        { new: true, session }
+        { $pull: { items: { productId: data.productId } } },
+        { new: true, session },
       );
     } else {
       //  Increment quantity if item exists
       cart = await CartModel.findOneAndUpdate(
-        { _id: cartId, userId, "items.productId": productId },
+        { _id: cartId, userId, "items.productId": data.productId },
         {
           $set: {
             "items.$.quantity": quantity,
             "items.$.productPrice": itemPrice,
           },
         },
-        { new: true, session }
+        { new: true, session },
       );
 
       // Push new item if it doesn’t exist
@@ -197,9 +198,15 @@ export class ProductRepository {
         cart = await CartModel.findOneAndUpdate(
           { _id: cartId, userId },
           {
-            $push: { items: { productId, quantity, productPrice: itemPrice } },
+            $push: {
+              items: {
+                productId: data.productId,
+                quantity,
+                productPrice: itemPrice,
+              },
+            },
           },
-          { new: true, session }
+          { new: true, session },
         );
 
         // Create cart if it doesn’t exist
@@ -208,11 +215,17 @@ export class ProductRepository {
             [
               {
                 userId,
-                items: [{ productId, quantity, productPrice: itemPrice }],
+                items: [
+                  {
+                    productId: data.productId,
+                    quantity,
+                    productPrice: itemPrice,
+                  },
+                ],
                 totalPrice: quantity * itemPrice,
               },
             ],
-            { session }
+            { session },
           );
           cart = created && created.length > 0 ? created[0] : null;
           if (!cart) throw new Error("Failed to create cart");
@@ -240,7 +253,7 @@ export class ProductRepository {
         return sum + item.quantity * effectivePrice;
       },
 
-      0
+      0,
     );
     const couponDiscount = finalCart.couponCode?.discount ?? 0;
 
@@ -250,4 +263,33 @@ export class ProductRepository {
 
     return finalCart;
   };
+  // coupon code creation
+  static async createCoupon(userId: Types.ObjectId, data: ICoupon) {
+    const coupon = await CouponModel.create({
+      ...data,
+      createdBy: userId,
+    });
+    return coupon;
+  }
+
+  //coupon code application in cart
+  static async applyCouponToCart(
+    cartId: Types.ObjectId,
+    coupon: { code: string; discount: number },
+    finalTotal: number,
+    session?: ClientSession,
+  ) {
+    const cart = await CartModel.findOneAndUpdate(
+      cartId,
+      { couponCode: coupon, totalPrice: finalTotal },
+      { new: true, session },
+    ).select("-__v");
+    return cart;
+  }
+
+  //get coupon
+  static async getCoupons() {
+    const coupons = await CouponModel.find().select("-__v");
+    return coupons;
+  }
 }

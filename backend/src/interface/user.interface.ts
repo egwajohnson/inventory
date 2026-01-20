@@ -19,5 +19,9 @@ export interface IAddUser{
     state: string;
     postcode: number;
   };
-  position: string;
+  role: UserRole;
 }
+
+export type UserRole = "admin" | "customer" | "merchant";
+
+
