@@ -1,7 +1,6 @@
 import { Response, Request, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import {JWT_SECRET} from "../config/system.variable"
-//import { userModel } from "../models/user.model";
+import {JWT_SECRET} from "../config/system.variable";
 import {UserModel} from "../models/user.model"
 import { Types } from "mongoose";
 

@@ -687,9 +687,9 @@ export class AppService {
     if (!user) {
       throw throwCustomError("User not found.", 404);
     }
-    // if (user.role !== "admin") {
-    //   throw throwCustomError("Only admin users can create coupons.", 403);
-    // }
+    if (user.role !== "admin") {
+      throw throwCustomError("Only admin users can create coupons.", 403);
+    }
 
     if (!data.discountType || !data.discountValue) {
       throw throwCustomError("Discount value and type are required.", 400);
