@@ -5,7 +5,7 @@ import mongoose from "mongoose";
   firstName: { type: String, required: true, trim: true },
   lastName: { type: String, required: true, trim: true },
   username: { type: String, required: true },
-  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+  email: { type: String, required: true, unique: true, trim: true },
   password: { type: String, select: false, required: true },
   otp: { type: String, required: false, ref: "Otp" },
   gender: { type: String, enum: ["male", "female", "other"], required: true },

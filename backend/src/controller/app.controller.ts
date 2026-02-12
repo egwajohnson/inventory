@@ -15,17 +15,21 @@ export class AppController {
     }
   };
 
-  static createUser = async (req: Request, res: Response, next: NextFunction) => {
+  static createUser = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       // const filePath = req.file?.path;
       // const user = req.body;
       const file = req.file;
-      const user  = req.body;
+      const user = req.body;
       console.log("Received body:", user);
       console.log("Received file:", file);
-       if (!file) {
-      throw throwCustomError("User image is required", 400);
-    }
+      if (!file) {
+        throw throwCustomError("User image is required", 400);
+      }
       //user.image = filePath;
 
       const response = await AppService.createUser(user, file);
@@ -112,7 +116,12 @@ export class AppController {
           .status(400)
           .json({ success: false, message: "Email and password are required" });
       }
-      const response = await AppService.loginUser(email, password, ipAddress, userAgent);
+      const response = await AppService.loginUser(
+        email,
+        password,
+        ipAddress,
+        userAgent,
+      );
       return res.status(200).json({ success: true, payload: response });
     } catch (error: any) {
       console.error("Login error:", error);
@@ -122,10 +131,10 @@ export class AppController {
 
   static createOtp = async (req: Request, res: Response) => {
     try {
-      const { email } = req.body; 
+      const { email } = req.body;
       if (!email) {
         throw throwCustomError("Email is required", 400);
-      } 
+      }
       const response = await AppService.otpCreate(email);
       res.status(201).json({ success: true, payload: response });
     } catch (error: any) {
@@ -148,7 +157,7 @@ export class AppController {
 
   static createProduct = async (
     req: IRequest,
-    res: Response
+    res: Response,
   ): Promise<Response> => {
     try {
       const userId = req.user.id;
@@ -157,11 +166,11 @@ export class AppController {
       console.log("Received body:", product);
 
       if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        error: "Product image is required",
-      });
-    }
+        return res.status(400).json({
+          success: false,
+          error: "Product image is required",
+        });
+      }
       const path = req.file.path;
       product.image = path;
 
@@ -216,7 +225,7 @@ export class AppController {
 
       const response = await AppService.updateProduct(
         productName,
-        productPrice
+        productPrice,
       );
       res.status(200).json(response);
     } catch (error: any) {
@@ -230,7 +239,7 @@ export class AppController {
 
       const response = await AppService.updateProductQuantity(
         productName,
-        quantity
+        quantity,
       );
       res.status(200).json(response);
     } catch (error: any) {
@@ -240,14 +249,16 @@ export class AppController {
 
   static saleProduct = async (req: Request, res: Response) => {
     try {
-      const { productId, productName, productPrice, quantity, totalPrice } =
-        req.body;
+      const {
+        userId,
+        cartId,
+        deliveryAddress: { street, city, state },
+      } = req.body;
 
-      const response = await AppService.saleProduct(productId, {
-        productName,
-        productPrice,
-        quantity,
-        totalPrice,
+      const response = await AppService.saleProduct(userId, cartId, {
+        street,
+        city,
+        state,
       });
       res.status(200).json(response);
     } catch (error: any) {
@@ -289,7 +300,7 @@ export class AppController {
     }
   };
 
-  static applyCouponToCart = async (req: IRequest, res: Response)=> {
+  static applyCouponToCart = async (req: IRequest, res: Response) => {
     try {
       const userId = req.user.id;
       const { couponCode } = req.body;

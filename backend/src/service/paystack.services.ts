@@ -37,8 +37,11 @@ export class PaystackService {
         return payment;
       }
       return paystackResponse;
-    } catch (error) {
-      throwCustomError("Failed to initialize payment", 500);
+    } catch (error: any) {
+      throwCustomError(
+        error.response?.data?.message || "Payment initialization failed",
+        500,
+      );
     }
   }
   static async createTransaction(transactionData: any) {

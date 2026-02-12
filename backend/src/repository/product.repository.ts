@@ -80,32 +80,29 @@ export class ProductRepository {
   }
 
   static async saleProduct(
-    productId: Types.ObjectId,
-    data: {
-      productName: string;
-      productPrice: number;
-      quantity: number;
-      totalPrice: number;
+    userId: Types.ObjectId,
+    cartId: Types.ObjectId,
+    deliveryAddress: {
+      street: string;
+      city: string;
+      state: string;
     },
   ) {
-    if (
-      !productId ||
-      !data.productName ||
-      !data.productPrice ||
-      typeof data.quantity !== "number" ||
-      typeof data.totalPrice !== "number"
-    ) {
-      throw new Error(
-        "Product name, product price, quantity, and total price are required and must be valid",
-      );
-    }
-
+    const cart = await CartModel.findById(cartId);
+    if (!cart) throw new Error("Cart not found");
     const response = await SaleModel.create({
-      productId,
-      ...data,
-      timestamp: new Date(),
+      userId,
+      cartId,
+      deliveryAddress,
     });
 
+    return response;
+  }
+
+  static async getSaleById(saleId: Types.ObjectId) {
+    const response = await SaleModel.findById(saleId)
+      .populate("cartId")
+      .select("-__v");
     return response;
   }
 

@@ -32,6 +32,10 @@ import { CartModel } from "../models/cart.model";
 import { ICoupon } from "../interface/coupon.interface";
 import { UserModel } from "../models/user.model";
 import { CouponModel } from "../models/coupon.model";
+import { subscribe } from "diagnostics_channel";
+import { SaleModel } from "../models/sale.model";
+import { PaystackService } from "./paystack.services";
+import { Session } from "inspector/promises";
 
 export class AppService {
   static preRegister = async (user: preRegister) => {
@@ -530,80 +534,93 @@ export class AppService {
     return productupdat;
   };
   static saleProduct = async (
-    productId: string | Types.ObjectId,
-    data: {
-      productName: string;
-      productPrice: number;
-      quantity: number;
-      totalPrice: number;
+    userId: Types.ObjectId,
+    cartId: Types.ObjectId,
+    deliveryAddress: {
+      street: string;
+      city: string;
+      state: string;
     },
   ) => {
-    const { productName, productPrice, quantity, totalPrice } = data;
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-    const quantities = await ProductModel.findOne({ quantity: quantity });
+    try {
+      const user = await UserModel.findById(userId).session(session);
+      if (!user) {
+        throw throwCustomError("User not found", 404);
+      }
+      if (!user?.email) {
+        throw throwCustomError("User email is required for sale", 400);
+      }
 
-    if (data.productPrice <= 0 || data.quantity <= 0 || data.totalPrice <= 0) {
-      throw throwCustomError(
-        "Product price, quantity, and total price must be positive numbers",
-        400,
+      const cart = await CartModel.findOne({ _id: cartId, userId }).session(
+        session,
       );
-    }
+      if (!cart) {
+        throw throwCustomError("Cart not found", 404);
+      }
 
-    if (
-      !productName ||
-      !productPrice ||
-      quantity === undefined ||
-      totalPrice === undefined
-    ) {
-      throw throwCustomError(
-        "Product name, product price, quantity, and total price are required",
-        400,
+      if (!cart.items || cart.items.length === 0) {
+        throw throwCustomError("Cart is empty", 400);
+      }
+
+      if (!cart.totalPrice || cart.totalPrice <= 0) {
+        throw throwCustomError("Cart total price is invalid", 400);
+      }
+
+      const getsale = await SaleModel.findOne({ cartId }).session(session);
+      if (getsale) {
+        throw throwCustomError(
+          "This cart has already been processed for sale",
+          400,
+        );
+      }
+
+      const saleId = `ORD-${Date.now()}`;
+
+      const sale = await SaleModel.create(
+        [
+          {
+            userId,
+            cartId,
+            deliveryAddress,
+            saleId,
+            totalAmount: cart.totalPrice,
+            paymentMethod: "paystack",
+            subtotal: cart.totalPrice,
+          },
+        ],
+        { session },
       );
-    }
-
-    const convertedProductId =
-      typeof productId === "string" ? new Types.ObjectId(productId) : productId;
-
-    const product = await ProductModel.findById(convertedProductId);
-
-    if (!product) {
-      throw throwCustomError("Product not found", 404);
-    }
-
-    if (product.quantity < quantity) {
-      throw throwCustomError("Insufficient quantity available for sale", 400);
-    }
-
-    // Update product (e.g., reduce stock or mark as sold)
-    const updatedProduct = await ProductRepository.saleProduct(
-      convertedProductId,
-      data,
-    );
-
-    if (updatedProduct) {
-      // Save history if product update succeeded
-      await ProductRepository.createsaleHistory(
-        convertedProductId,
-        productName,
-        productPrice,
-        quantity,
-        totalPrice,
+      if (!sale) {
+        throw throwCustomError("Failed to process sale", 500);
+      }
+      //initiate paymet
+      const payment = await PaystackService.initializePayment(
+        cart.totalPrice * 100,
+        user.email,
+        userId.toString(),
+        saleId,
       );
-    }
 
-    // Return receipt object
-    return {
-      receipt: {
-        productId: convertedProductId.toString(),
-        productName,
-        productPrice,
-        quantity,
-        totalPrice,
-        date: new Date().toISOString(),
-      },
-      message: "Sale completed successfully",
-      //  updatedProduct,
-    };
+      if (!payment) {
+        throw throwCustomError("Failed to initialize payment", 500);
+      }
+      await session.commitTransaction();
+      session.endSession();
+      return {
+        successful: true,
+        message: "Sale processed successfully. Proceed to payment.",
+        data: sale[0],
+        payment: payment,
+      };
+    } catch (error: any) {
+      await session.abortTransaction();
+      session.endSession();
+      if (error.statuscode) throw error;
+      throw throwCustomError(error.message || "Internal server error", 500);
+    }
   };
 
   //cart section service
