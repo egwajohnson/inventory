@@ -32,10 +32,10 @@ import { CartModel } from "../models/cart.model";
 import { ICoupon } from "../interface/coupon.interface";
 import { UserModel } from "../models/user.model";
 import { CouponModel } from "../models/coupon.model";
-import { subscribe } from "diagnostics_channel";
 import { SaleModel } from "../models/sale.model";
 import { PaystackService } from "./paystack.services";
 import { Session } from "inspector/promises";
+import { createPath } from "react-router-dom";
 
 export class AppService {
   static preRegister = async (user: preRegister) => {
@@ -70,10 +70,11 @@ export class AppService {
     return "OTP has been sent to your email to continue.";
   };
 
-  static createUser = async (user: any, file: Express.Multer.File) => {
+  static createUser = async (user: any) => {
     if (!user) {
       throw throwCustomError("User data is required", 400);
     }
+    console.log("Payload received in service:", user);
 
     const { error } = userschema.validate(user);
     if (error) {
@@ -118,10 +119,6 @@ export class AppService {
     const payload = {
       ...user,
       password: hashedPassword,
-      image: file.path,
-      originalname: file.originalname,
-      mimetype: file.mimetype,
-      size: file.size,
     };
 
     const response = await UserRepository.createUser(payload);
@@ -223,7 +220,7 @@ export class AppService {
       throw throwCustomError("Failed to create OTP", 500);
     }
 
-    return response;
+    return otp;
   };
 
   static deleteUser = async (id: Types.ObjectId) => {
@@ -331,11 +328,11 @@ export class AppService {
       );
     }
     const genOtp = await AppService.generateOtp(email);
-    if (!genOtp || !genOtp.otp) {
+    if (!genOtp || !genOtp.toString()) {
       throw throwCustomError("Failed to generate OTP", 500);
     }
 
-    const response = await UserRepository.otpCreate(email, genOtp.otp);
+    const response = await UserRepository.otpCreate(email, genOtp);
     // sendMail(
     //   {
     //     email: user!.email,

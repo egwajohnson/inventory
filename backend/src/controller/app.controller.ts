@@ -21,18 +21,21 @@ export class AppController {
     next: NextFunction,
   ) => {
     try {
-      // const filePath = req.file?.path;
-      // const user = req.body;
-      const file = req.file;
       const user = req.body;
       console.log("Received body:", user);
-      console.log("Received file:", file);
-      if (!file) {
-        throw throwCustomError("User image is required", 400);
+      if (!req.file) {
+        res.status(400).json({
+          success: false,
+          error: "user image is required",
+        });
       }
-      //user.image = filePath;
+      const filepath = req.file?.path;
+      user.image = filepath;
 
-      const response = await AppService.createUser(user, file);
+      const response = await AppService.createUser({
+        ...user,
+        image: filepath,
+      });
       res.status(201).json(response);
     } catch (error: any) {
       console.log("Error creating user:", error);
@@ -247,18 +250,15 @@ export class AppController {
     }
   };
 
-  static saleProduct = async (req: Request, res: Response) => {
+  static saleProduct = async (req: IRequest, res: Response) => {
     try {
-      const {
-        userId,
-        cartId,
-        deliveryAddress: { street, city, state },
-      } = req.body;
+      const userId = req.user?.id;
+      const { cartId, deliveryAddress } = req.body;
 
       const response = await AppService.saleProduct(userId, cartId, {
-        street,
-        city,
-        state,
+        street: deliveryAddress.street,
+        city: deliveryAddress.city,
+        state: deliveryAddress.state,
       });
       res.status(200).json(response);
     } catch (error: any) {

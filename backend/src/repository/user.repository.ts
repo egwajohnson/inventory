@@ -2,29 +2,36 @@ import express from "express";
 import { UserModel } from "../models/user.model";
 import { IAddUser } from "../interface/user.interface";
 import { userschema } from "../validation/user.schemal";
-import {ProfileModel} from "../models/profile.model";
+import { ProfileModel } from "../models/profile.model";
 import { Types } from "mongoose";
 import { OtpModel } from "../models/otp.model";
 import { throwCustomError } from "../middleware/errorHandle.middleware";
 
 export class UserRepository {
   static createUser = async (user: any) => {
-
-    //if (!user.image) throw new Error("No file found");
-
-    const response = await UserModel.create(user);
-
+    if (!user) {
+      throw throwCustomError("User data is required", 400);
+    }
+    const response = await UserModel.create({ ...user });
     return response;
   };
 
-  static uploadProfileImage = async (userId: Types.ObjectId, path: { imageUrl: string, imageType: string, imageSize: number, publicId: string }) => {
+  static uploadProfileImage = async (
+    userId: Types.ObjectId,
+    path: {
+      imageUrl: string;
+      imageType: string;
+      imageSize: number;
+      publicId: string;
+    },
+  ) => {
     if (!userId) {
       throw new Error("User ID is required");
     }
 
     const response = await ProfileModel.create({
       userId,
-    ...path
+      ...path,
     });
 
     return response;
@@ -49,7 +56,12 @@ export class UserRepository {
     return response;
   };
 
-  static loginUser = async (email: string, password: string, ipAddress: string, userAgent: string): Promise<any> => {
+  static loginUser = async (
+    email: string,
+    password: string,
+    ipAddress: string,
+    userAgent: string,
+  ): Promise<any> => {
     if (!email) {
       throw new Error("Email and password are required");
     }
@@ -64,32 +76,36 @@ export class UserRepository {
   };
 
   static otpCreate = async (email: string, otp: string) => {
-  return OtpModel.findOneAndUpdate(
-    { email },
-    {
-      otp,
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
-    },
-    {
-      upsert: true,
-      new: true,
-    }
-  );
-};
+    return OtpModel.findOneAndUpdate(
+      { email },
+      {
+        otp,
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
+      },
+      {
+        upsert: true,
+        new: true,
+      },
+    );
+  };
 
-static findOtpByEmail = async (email: string) => {
+  static findOtpByEmail = async (email: string) => {
     const response = await OtpModel.findOne({ email });
     return response;
-  }
+  };
 
-static passwordReset = async (email: string, otp: string, newPassword: string) => {
+  static passwordReset = async (
+    email: string,
+    otp: string,
+    newPassword: string,
+  ) => {
     const response = await UserModel.findOneAndUpdate(
       { email },
-      { password: newPassword , is_virified: true },
-      { new: true }
+      { password: newPassword, is_virified: true },
+      { new: true },
     ).select("-password  -__v");
     return response;
-  }
+  };
 
   static getUsers = async () => {
     const response = await UserModel.find()
@@ -110,12 +126,10 @@ static passwordReset = async (email: string, otp: string, newPassword: string) =
   };
 
   static deleteUserByEmail = async (email: string) => {
-    if(!email){
-        throw throwCustomError("email needed", 400)
+    if (!email) {
+      throw throwCustomError("email needed", 400);
     }
     const response = await UserModel.findOneAndDelete({ email }).select("-__v");
     return response;
   };
-
-
 }
