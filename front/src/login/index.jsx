@@ -12,7 +12,7 @@ export default function Login() {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/login", {
+      const res = await fetch("http://localhost:5000/api/v1/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -30,10 +30,10 @@ export default function Login() {
         throw new Error(data?.message || "Login failed");
       }
 
-      // ✅ Store token or user data if returned
+      //Store token or user data if returned
       localStorage.setItem("token", data?.token || "");
 
-      // ✅ Redirect to dashboard
+      // Redirect to dashboard
       navigate("/dashboard");
     } catch (err) {
       setError(err.message);

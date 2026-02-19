@@ -130,7 +130,7 @@ export class AppService {
         email: user.email,
         subject: "Account Successfully Created",
         emailInfo: {
-          firstName: `${user.firstName}`,
+          firstName: `${user.firstName} ${user.lastName}`,
           email: `${user.email}`,
         },
       },
@@ -296,9 +296,9 @@ export class AppService {
 
     return {
       message: `Successful login. Welcome ${user.firstName}`,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
+      //firstName: user.firstName,
+      //lastName: user.lastName,
+      //email: user.email,
       token: jwttoken,
     };
   };
@@ -333,17 +333,17 @@ export class AppService {
     }
 
     const response = await UserRepository.otpCreate(email, genOtp);
-    // sendMail(
-    //   {
-    //     email: user!.email,
-    //     subject: " VERIFICATION OTP",
-    //     emailInfo: {
-    //       otp: genOtp.otp.toString(),
-    //        name: `${user.email}`,
-    //     },
-    //   },
-    //   otpTemplate
-    // );
+    sendMail(
+      {
+        email: user!.email,
+        subject: " VERIFICATION OTP",
+        emailInfo: {
+          otp: genOtp.toString(),
+          name: `${user.firstName} ${user.lastName}`,
+        },
+      },
+      otpTemplate,
+    );
     return "OTP has been sent to your email to continue.";
   };
 
@@ -543,7 +543,10 @@ export class AppService {
     session.startTransaction();
 
     try {
-      const user = await UserModel.findById(userId).session(session);
+      const objectUserId = new Types.ObjectId(userId);
+      const objectCartId = new Types.ObjectId(cartId);
+
+      const user = await UserModel.findById(objectUserId).session(session);
       if (!user) {
         throw throwCustomError("User not found", 404);
       }
@@ -551,9 +554,11 @@ export class AppService {
         throw throwCustomError("User email is required for sale", 400);
       }
 
-      const cart = await CartModel.findOne({ _id: cartId, userId }).session(
-        session,
-      );
+      const cart = await CartModel.findOne({
+        _id: objectCartId,
+        userId: objectUserId,
+      }).session(session);
+      console.log("Cart found for sale:", cart);
       if (!cart) {
         throw throwCustomError("Cart not found", 404);
       }
@@ -566,7 +571,9 @@ export class AppService {
         throw throwCustomError("Cart total price is invalid", 400);
       }
 
-      const getsale = await SaleModel.findOne({ cartId }).session(session);
+      const getsale = await SaleModel.findOne({ cartId: objectCartId }).session(
+        session,
+      );
       if (getsale) {
         throw throwCustomError(
           "This cart has already been processed for sale",
@@ -579,20 +586,23 @@ export class AppService {
       const sale = await SaleModel.create(
         [
           {
-            userId,
-            cartId,
+            userId: objectUserId,
+            cartId: objectCartId,
             deliveryAddress,
             saleId,
-            totalAmount: cart.totalPrice,
+            totalPrice: cart.totalPrice,
+            subTotal: cart.totalPrice,
+            currency: "NGN",
             paymentMethod: "paystack",
-            subtotal: cart.totalPrice,
+            paymentStatus: "pending",
           },
         ],
         { session },
       );
       if (!sale) {
-        throw throwCustomError("Failed to process sale", 500);
+        throw throwCustomError("Failed to create sale record", 500);
       }
+
       //initiate paymet
       const payment = await PaystackService.initializePayment(
         cart.totalPrice * 100,
@@ -600,8 +610,19 @@ export class AppService {
         userId.toString(),
         saleId,
       );
+      if (payment.status === "success") {
+        await SaleModel.updateOne({ saleId }, { paymentStatus: "completed" });
+
+        await CartModel.updateOne(
+          { _id: objectCartId, userId: objectUserId },
+          { $set: { items: [], totalPrice: 0 } },
+        );
+
+        console.log("Cart cleared after successful payment");
+      }
 
       if (!payment) {
+        await SaleModel.updateOne({ saleId }, { paymentStatus: "failed" });
         throw throwCustomError("Failed to initialize payment", 500);
       }
       await session.commitTransaction();

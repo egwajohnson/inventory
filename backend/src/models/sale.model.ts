@@ -4,12 +4,18 @@ import mongoose, { Types } from "mongoose";
 const saleSchema = new mongoose.Schema(
   {
     userId: { type: Types.ObjectId, ref: "User", required: true },
-    cartId: { type: Types.ObjectId, ref: "Cart", required: true },
+    cartId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Cart",
+      required: true,
+      unique: true,
+    },
     subTotal: { type: Number, required: true }, //total unit price
+    currency: { type: String, required: true },
     discount: { type: Number, default: 0 },
     saleId: { type: String, required: true },
     deliveryFees: { type: Number, default: 0 },
-    totalAmount: { type: Number, required: true },
+    totalPrice: { type: Number, required: true },
     couponCode: { type: String, required: false },
     paymentRef: { type: String, required: false },
     paymentMethod: {
@@ -37,8 +43,6 @@ const saleSchema = new mongoose.Schema(
       city: { type: String, require: true },
       state: { type: String, require: true },
     },
-    currency: { type: String, required: true },
-    totalPrice: { type: Number, required: true },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
   },

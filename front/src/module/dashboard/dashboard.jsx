@@ -1,14 +1,13 @@
 import React from "react";
-import AppLayout from "../../Layout/AppLout";
 
 function Dashboard() {
   return (
     <>
-      <AppLayout>
-        <div>
+      <div className="container">
+        <div className="dashboard">
           <h1>Dashboard</h1>
         </div>
-      </AppLayout>
+      </div>
     </>
   );
 }

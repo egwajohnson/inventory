@@ -2,13 +2,19 @@ import React from "react";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 
-function AppLayout({ children }) {
+import { Outlet } from "react-router-dom";
+
+function AppLayout() {
   return (
-    <div>
-      <Header />
-      <main>{children}</main>
-      <Footer />
-    </div>
+    <>
+      <div className="app-layout">
+        <Header />
+        <main>
+          <Outlet />
+        </main>
+        <Footer />
+      </div>
+    </>
   );
 }
 

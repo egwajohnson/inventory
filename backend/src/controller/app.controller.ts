@@ -1,5 +1,5 @@
 import epress, { response } from "express";
-import { AppService } from "../service/app.service";
+import { AppService } from "../service/app.services";
 import { Request, Response, NextFunction } from "express";
 import { throwCustomError } from "../middleware/errorHandle.middleware";
 import { get } from "mongoose";
@@ -252,17 +252,25 @@ export class AppController {
 
   static saleProduct = async (req: IRequest, res: Response) => {
     try {
+      console.log("FULL BODY:", req.body);
       const userId = req.user?.id;
-      const { cartId, deliveryAddress } = req.body;
 
-      const response = await AppService.saleProduct(userId, cartId, {
+      if (!userId) {
+        throw throwCustomError("Unauthorized", 401);
+      }
+      const { cart, deliveryAddress } = req.body;
+      if (!cart) {
+        throw throwCustomError("Cart ID is required", 400);
+      }
+
+      const response = await AppService.saleProduct(userId, cart, {
         street: deliveryAddress.street,
         city: deliveryAddress.city,
         state: deliveryAddress.state,
       });
       res.status(200).json(response);
     } catch (error: any) {
-      res.status(404).json({ success: false, payload: error.message });
+      res.status(500).json({ success: false, payload: error.message });
     }
   };
 

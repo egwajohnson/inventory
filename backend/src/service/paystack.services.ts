@@ -15,7 +15,7 @@ export class PaystackService {
       const paystackResponse = await Paystack.initializeTransaction({
         email,
         amount: amount * 100,
-        callback_url: "https://yourdomain.com/callback",
+        callback_url: "https://google.com/callback",
         metadata: {
           order_id: orderId,
           user_id: userId,
