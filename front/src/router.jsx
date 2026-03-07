@@ -6,6 +6,7 @@ import Dashboard from "./module/dashboard/dashboard";
 import AppLayout from "./Layout/AppLout";
 import Error from "./Layout/components/error/error";
 import Cart from "./module/cart/cart";
+import Product from "./module/createProduct";
 
 const router = createBrowserRouter([
   {
@@ -18,6 +19,15 @@ const router = createBrowserRouter([
       {
         path: "/dashboard",
         element: <Dashboard />,
+      },
+    ],
+  },
+  {
+    element: <AppLayout />,
+    children: [
+      {
+        path: "/Product",
+        element: <Product />,
       },
     ],
   },

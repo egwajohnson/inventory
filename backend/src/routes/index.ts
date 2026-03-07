@@ -39,7 +39,7 @@ router.post("/user/reset-password", AppController.passwordReset);
 
 //product routes
 router.post(
-  "/product",
+  "/create/product",
   authMiddleware as any,
   upload.single("image"),
   uploadMiddleware as any,
