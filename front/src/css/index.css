@@ -68,19 +68,20 @@ body {
   font-size: 2rem;
   margin-bottom: 20px;
 }
-.contain .login input {
-  width: 80%;
+.contain .login input,
+select {
   padding: 10px;
-  margin-bottom: 20px;
+  border-radius: 6px;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  font-size: 14px;
+  transition: all 0.2s ease;
 }
 .contain .login input:focus {
-  border-color: #535bf2;
   outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 3px rgba(79, 70, 229, 0.3);
 }
 .contain .login button {
-  width: 80%;
   padding: 10px;
   background-color: #535bf2;
   color: white;
@@ -119,35 +120,36 @@ body {
   margin: 2px;
   padding: 2px;
 }
-.contain .pre .form-group input {
-  padding: 5px;
-  margin-bottom: 5px;
-  border: 2px solid #ccc;
-  border-radius: 4px;
+.contain .pre .form-group input,
+select {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  transition: all 0.2s ease;
 }
 .contain .pre .form-group input:hover {
   border-color: #535bf2;
 }
-.contain .pre .form-group input:focus {
-  border-color: #535bf2;
+.contain .pre .form-group input:focus,
+select:focus {
   outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 3px rgba(79, 70, 229, 0.3);
 }
 .contain .pre .form-group select {
-  padding: 5px;
-  margin-bottom: 5px;
-  border: 2px solid #ccc;
-  border-radius: 4px;
+  width: 100%;
+  padding: 10px;
+  margin: 5px;
 }
 .contain .pre .form-group select:hover {
   border-color: #535bf2;
 }
-.contain .pre .form-group select:focus {
-  border-color: #535bf2;
-  outline: none;
+.contain .pre .form-group button:disabled {
+  background: #999;
+  cursor: not-allowed;
 }
 .container {
-  /* width: 100%; */
-  /* height: 100vh; */
   min-height: 100vh;
   font-family: Arial, Helvetica, sans-serif;
   display: flex;

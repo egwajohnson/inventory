@@ -224,6 +224,7 @@ export default function Register() {
               />
             </div>
             <div className="form-group">
+              <label htmlFor="city">City</label>
               <input
                 id="city"
                 placeholder="City"
@@ -233,6 +234,7 @@ export default function Register() {
               />
             </div>
             <div className="form-group">
+              <label htmlFor="state">State</label>
               <input
                 id="state"
                 placeholder="State"

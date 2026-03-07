@@ -56,7 +56,6 @@ export default function PreRegister() {
           {error && <p style={{ color: "red" }}>{error}</p>}
 
           <form onSubmit={handleSubmit}>
-            {/* Email */}
             <div className="form-group">
               <label htmlFor="email">Email</label>
               <input
@@ -68,8 +67,6 @@ export default function PreRegister() {
                 required
               />
             </div>
-
-            {/* Password */}
             <div className="form-group">
               <label htmlFor="password">Password</label>
               <input
@@ -82,7 +79,6 @@ export default function PreRegister() {
               />
             </div>
 
-            {/* Position */}
             <div className="form-group">
               <label htmlFor="position">Position</label>
               <select
