@@ -697,21 +697,17 @@ export class AppService {
     }
   };
 
-  //  static async updateCartItem(userId: Types.ObjectId, data: any) {
-  //   await updateCartItemSchema.validateAsync(data);
-
-  //   if (!userId) {
-  //     throw throwCustomError("Unauthorized", 401);
-  //   }
-
-  //   const cart = await CartRepository.addOrUpdateItem(userId, data);
-
-  //   if (!cart) {
-  //     throw throwCustomError("Cart not found", 404);
-  //   }
-
-  //   return cart;
-  // }
+  static getCart = async (userId: Types.ObjectId) => {
+    if (!userId) {
+      throw throwCustomError("User ID is required to fetch the cart.", 400);
+    }
+    // const user = await UserModel.findById(userId);
+    // if (!user || !user.role.includes("admin")) {
+    //   throw throwCustomError("User not found or unauthorized", 404);
+    // }
+    const cart = await ProductRepository.getCart(userId);
+    return cart;
+  };
 
   // coupon section service
   static createCoupon = async (userId: Types.ObjectId, data: ICoupon) => {

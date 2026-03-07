@@ -11,7 +11,7 @@ const router = express.Router();
 
 router.post("/user/pre-register", AppController.preRegister);
 router.post(
-  "/user",
+  "/user/create",
   upload.single("image"),
   uploadMiddleware as any,
   AppController.createUser,
@@ -71,6 +71,7 @@ router.post(
   AppController.createCart as any,
 );
 router.post("/cart/add", authMiddleware as any, AppController.addToCart as any);
+router.get("/cart", authMiddleware as any, AppController.getCart as any);
 
 //coupon routes
 router.post(
