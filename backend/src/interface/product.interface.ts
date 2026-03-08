@@ -1,4 +1,3 @@
-import Express from "express";
 import { Types } from "mongoose";
 
 export interface product {
@@ -9,7 +8,7 @@ export interface product {
   quantity: number;
   description: string;
   discount?: number;
-  category?: string;
+  category: string;
   image?: string;
 }
 export interface CartItem {

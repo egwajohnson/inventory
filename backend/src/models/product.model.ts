@@ -1,5 +1,5 @@
 import express from "express";
-import { optional } from "joi";
+import { optional, required } from "joi";
 import mongoose, { Types } from "mongoose";
 
 const productSchema = new mongoose.Schema(
@@ -9,18 +9,18 @@ const productSchema = new mongoose.Schema(
     supplierId: { type: Types.ObjectId, ref: "Supplier" },
     productName: { type: String, required: true },
     productPrice: { type: Number, required: true },
-    slug: { type: String, required: true, },
-    sku: { type: String, required: true,  maxlength: 50 },
+    slug: { type: String, required: true },
+    sku: { type: String, required: true, maxlength: 50 },
     quantity: { type: Number, required: true },
     description: { type: String, optional: true },
-    categories:{type:String, optional:true},
-    file: { type: String, optional:true},
+    category: { type: String, required: true },
+    file: { type: String, optional: true },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 export const ProductModel = mongoose.model("Product", productSchema);

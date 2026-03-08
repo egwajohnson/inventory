@@ -6,6 +6,7 @@ export const productschema = Joi.object({
   slug: Joi.string().trim().optional(),
   quantity: Joi.number().integer().required(),
   description: Joi.string().trim().optional(),
+  category: Joi.string().trim().required(),
   image: Joi.string().optional(),
 });
 

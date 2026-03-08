@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import createProduct from "../product/createProducts";
 
 function Product() {
-  const [name, setName] = useState("");
-  const [price, setPrice] = useState("");
+  const [productName, setProductName] = useState("");
+  const [productPrice, setProductPrice] = useState("");
   const [quantity, setQuantity] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const fileRef = useRef(null);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -30,7 +32,9 @@ function Product() {
 
     try {
       setLoading(true);
-      await createProduct(formData);
+      const response = await createProduct(formData);
+      if (response.success) {
+      }
       alert("Product created successfully");
 
       setName("");
@@ -41,8 +45,7 @@ function Product() {
       setImage(null);
       setPreview("");
     } catch (error) {
-      //alert("Failed to create product");
-      console.error(error.FormData || error.message);
+      alert("Failed to create product");
     } finally {
       setLoading(false);
     }
@@ -59,9 +62,9 @@ function Product() {
               <label>Product Name</label>
               <input
                 type="text"
-                value={name}
+                value={productName}
                 required
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => setProductName(e.target.value)}
               />
             </div>
 
@@ -71,7 +74,7 @@ function Product() {
                 type="number"
                 value={productPrice}
                 required
-                onChange={(e) => setPrice(e.target.value)}
+                onChange={(e) => setProductPrice(e.target.value)}
               />
             </div>
 
@@ -108,7 +111,12 @@ function Product() {
 
           <div className="form-group full">
             <label>Product Image</label>
-            <input type="file" accept="image/*" onChange={handleImageChange} />
+            <input
+              type="file"
+              ref={fileRef}
+              accept="image/*"
+              onChange={handleImageChange}
+            />
           </div>
 
           {preview && (
