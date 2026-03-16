@@ -1,7 +1,8 @@
-/* * {
+* {
   box-sizing: border-box;
-  padding: 5px;
-} */
+  padding: 0%;
+  margin: 0%;
+}
 body {
   box-sizing: border-box;
   margin: 0px;
@@ -9,24 +10,12 @@ body {
   font-family: Arial, sans-serif;
   background-color: hsl(240, 10%, 94%);
 }
-/* .container {
-  box-sizing: border-box;
-  width: 100% auto;
-  height: 100vh auto;
-  padding: 10px;
-  margin: 0px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-} */
 .dashboard {
   width: 100%;
   justify-content: center;
   align-items: center;
   height: 100vh;
   background-color: #535bf2;
-  /* opacity: 0.1; */
-  /* border-radius: 8px; */
 }
 .dashboard h1 {
   align-items: center;
@@ -40,7 +29,6 @@ body {
   margin-top: -5px;
   margin-bottom: -20px;
   padding: 0px;
-  /* opacity: 0.1; */
 }
 
 /* login css styling */
@@ -159,53 +147,55 @@ select:focus {
   background-size: cover;
   background-position: center;
 }
+
 .container .reg {
   width: 100%;
   max-width: 500px;
+  margin-top: 10px;
+  margin-bottom: 10px;
   padding: 35px;
   border-radius: 10px;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
   background-color: rgba(255, 255, 255, 0.8);
 }
+
 .container .reg h1 {
   text-align: center;
   margin-bottom: 25px;
   color: #333;
 }
+
 .container .reg p {
   text-align: center;
   font-size: 14px;
 }
+
 .container .reg form {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px 20px;
 }
 
 .container .reg form .form-group {
-  align-items: center;
-  justify-content: center;
-  width: 80vh;
   display: flex;
   flex-direction: column;
   gap: 6px;
+  margin: 5px;
 }
+
 .container .reg .form-group label {
   font-size: 15px;
   font-weight: 600;
   color: #444;
 }
+
 .container .reg .form-group input,
-select {
-  width: 70%;
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 14px;
-  transition: all 0.2s ease;
+.container .reg .form-group select {
+  width: 100%;
 }
+
 .container .reg .form-group input:focus,
-select:focus {
+.container .reg .form-group select:focus {
   border-color: #535bf2;
   outline: none;
   box-shadow: 0 0 3px rgba(79, 70, 229, 0.3);
@@ -215,6 +205,7 @@ select:focus {
   margin-top: 15px;
   padding: 12px;
   border: none;
+  grid-column: span 2;
   border-radius: 6px;
   background: #4f46e5;
   color: white;
@@ -223,7 +214,6 @@ select:focus {
   cursor: pointer;
   transition: background 0.2s ease;
   font-family:
-    sans-serif,
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
@@ -241,10 +231,19 @@ select:focus {
   background: #4338ca;
 }
 
-/* Disabled button */
 .container .reg button:disabled {
   background: #999;
   cursor: not-allowed;
+}
+
+@media (max-width: 700px) {
+  .container .reg form {
+    grid-template-columns: 1fr;
+  }
+
+  .container .reg form button {
+    grid-column: span 1;
+  }
 }
 
 /* product */
@@ -309,6 +308,128 @@ button:hover {
   width: 120px;
   border-radius: 6px;
 }
+
+/* cart */
+
+.floating-cart {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #ff8c00;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 50px;
+  font-size: 18px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.floating-cart .link {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+.prev {
+  margin-top: 30px;
+  text-align: center;
+}
+.prev .span {
+  margin: 0 15px;
+  font-weight: bold;
+}
+.show {
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+.cart-count {
+  font-weight: bold;
+}
+.block {
+  display: inline;
+  /* background-color: red; */
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+
+.del {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+.prod {
+  display: flex;
+  flex-direction: column;
+}
+
+.delet {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: red;
+}
+
+.products-wrapper {
+  position: relative;
+}
+.carts-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  padding: 40px;
+}
+
+.product-card {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: 0.3s;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+}
+
+.product-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.product-card h3 {
+  margin: 10px 0;
+}
+
+.price {
+  font-size: 18px;
+  font-weight: bold;
+  color: #2c7a2c;
+}
+
+.cart-btn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 10px;
+  border: none;
+  background: #ff6b00;
+  color: white;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.cart-btn:hover {
+  background: #e65c00;
+}
+
+/* header and footer */
 .footer {
   width: 100%;
   height: 50px;
@@ -346,10 +467,12 @@ button:hover {
 }
 .header .nav {
   width: 60%;
+  height: 3rem;
   background-color: red;
   display: flex;
   justify-content: center;
   align-items: center;
+  border-radius: 4px;
 }
 .header .nav ul {
   list-style: none;

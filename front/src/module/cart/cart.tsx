@@ -25,9 +25,9 @@ function Cart() {
           throw new Error("Failed to fetch cart items");
         }
         const data = await response.json();
-        if(data.user?.role !== "admin" && data.user?.role !== "customer"){
-          throw new Error("Only Admin or Customer can view cart");
-        }
+        // if(data.user?.role !== "admin" && data.user?.role !== "customer"){
+        //   throw new Error("Only Admin or Customer can view cart");
+        // }
         setCartItems(data.items || []);
         setTotalPrice(data.totalPrice || 0);
         setCouponDiscount(data.couponCode?.discount || 0);

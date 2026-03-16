@@ -5,8 +5,10 @@ import Register from "./module/register/register";
 import Dashboard from "./module/dashboard/dashboard";
 import AppLayout from "./Layout/AppLout";
 import Error from "./Layout/components/error/error";
-import Cart from "./module/cart/cart";
-import Product from "./module/createProduct";
+import Cart from "./module/cartItems/cart";
+
+import Create from "./module/createProduct";
+import Products from "./module/getProduct/product";
 
 const router = createBrowserRouter([
   {
@@ -26,8 +28,26 @@ const router = createBrowserRouter([
     element: <AppLayout />,
     children: [
       {
-        path: "/Product",
-        element: <Product />,
+        path: "/create",
+        element: <Create />,
+      },
+    ],
+  },
+  {
+    element: <AppLayout />,
+    children: [
+      {
+        path: "/Cart",
+        element: <Cart />,
+      },
+    ],
+  },
+  {
+    element: <AppLayout />,
+    children: [
+      {
+        path: "/products",
+        element: <Products />,
       },
     ],
   },

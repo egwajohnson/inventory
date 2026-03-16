@@ -9,7 +9,6 @@ export interface product {
   description: string;
   discount?: number;
   category: string;
-  image?: string;
 }
 export interface CartItem {
   productId: Types.ObjectId;

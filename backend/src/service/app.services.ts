@@ -386,11 +386,7 @@ export class AppService {
 
   // product section
 
-  static createProduct = async (
-    product: product,
-    userId: Types.ObjectId,
-    path: string,
-  ) => {
+  static createProduct = async (product: product, userId: Types.ObjectId) => {
     if (!product) {
       throw throwCustomError("Product data is required", 400);
     }
@@ -454,15 +450,7 @@ export class AppService {
       throw throwCustomError("Product already exists with this name", 400);
     }
 
-    const response = await ProductRepository.addProduct(
-      {
-        ...product,
-        productPrice: price,
-        quantity: qty,
-        image: path,
-      },
-      userId,
-    );
+    const response = await ProductRepository.addProduct(product, userId);
 
     return response;
   };
@@ -698,14 +686,13 @@ export class AppService {
   };
 
   static getCart = async (userId: Types.ObjectId) => {
-    if (!userId) {
-      throw throwCustomError("User ID is required to fetch the cart.", 400);
+    if (!userId || !Types.ObjectId.isValid(userId)) {
+      throw throwCustomError("Invalid user ID", 400);
     }
-    // const user = await UserModel.findById(userId);
-    // if (!user || !user.role.includes("admin")) {
-    //   throw throwCustomError("User not found or unauthorized", 404);
-    // }
     const cart = await ProductRepository.getCart(userId);
+    if (!cart) {
+      throw throwCustomError("Cart not found", 404);
+    }
     return cart;
   };
 

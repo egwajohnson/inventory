@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import createProduct from "../product/createProducts";
 
-function Product() {
+function Create() {
   const [productName, setProductName] = useState("");
   const [productPrice, setProductPrice] = useState("");
   const [quantity, setQuantity] = useState("");
@@ -15,12 +15,25 @@ function Product() {
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
+
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      alert("Please upload a valid image file");
+      return;
+    }
+
     setImage(file);
-    if (file) setPreview(URL.createObjectURL(file));
+    setPreview(URL.createObjectURL(file));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!image) {
+      alert("Product image is required");
+      return;
+    }
 
     const formData = new FormData();
     formData.append("productName", productName);
@@ -32,19 +45,28 @@ function Product() {
 
     try {
       setLoading(true);
-      const response = await createProduct(formData);
-      if (response.success) {
-      }
-      alert("Product created successfully");
 
-      setName("");
-      setPrice("");
-      setQuantity("");
-      setDescription("");
-      setCategory("");
-      setImage(null);
-      setPreview("");
+      const response = await createProduct(formData);
+
+      if (response?.success) {
+        alert("Product created successfully");
+
+        setProductName("");
+        setProductPrice("");
+        setQuantity("");
+        setDescription("");
+        setCategory("");
+        setImage(null);
+        setPreview("");
+
+        if (fileRef.current) {
+          fileRef.current.value = "";
+        }
+      } else {
+        alert(response?.error || "Failed to create product");
+      }
     } catch (error) {
+      console.error(error);
       alert("Failed to create product");
     } finally {
       setLoading(false);
@@ -74,6 +96,7 @@ function Product() {
                 type="number"
                 value={productPrice}
                 required
+                min="0"
                 onChange={(e) => setProductPrice(e.target.value)}
               />
             </div>
@@ -84,6 +107,7 @@ function Product() {
                 type="number"
                 value={quantity}
                 required
+                min="0"
                 onChange={(e) => setQuantity(e.target.value)}
               />
             </div>
@@ -120,7 +144,12 @@ function Product() {
           </div>
 
           {preview && (
-            <img src={preview} alt="preview" className="image-preview" />
+            <img
+              src={preview}
+              alt="preview"
+              className="image-preview"
+              style={{ width: "120px", marginTop: "10px" }}
+            />
           )}
 
           <button type="submit" disabled={loading}>
@@ -132,4 +161,4 @@ function Product() {
   );
 }
 
-export default Product;
+export default Create;

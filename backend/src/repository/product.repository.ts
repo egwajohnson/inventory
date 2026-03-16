@@ -142,9 +142,10 @@ export class ProductRepository {
   }
 
   static async getCart(userId: Types.ObjectId) {
-    const cart = await CartModel.findOne({ userId }).populate(
-      "items.productId",
-    );
+    const cart = await CartModel.findOne({ userId }).populate({
+      path: "items.productId",
+      select: "productName price image",
+    });
     return cart;
   }
 
@@ -233,7 +234,6 @@ export class ProductRepository {
     if (!cart) {
       throw new Error("Cart not found after update");
     }
-    // Recalculate totalPrice
     const cartQuery = CartModel.findOne({ _id: cart._id, userId });
     const finalCart = session
       ? await cartQuery.session(session)

@@ -1,13 +1,13 @@
 import Joi from "joi";
 
 export const productschema = Joi.object({
-  productName: Joi.string().trim().required(),
-  productPrice: Joi.number().min(0).required(),
-  slug: Joi.string().trim().optional(),
-  quantity: Joi.number().integer().required(),
-  description: Joi.string().trim().optional(),
-  category: Joi.string().trim().required(),
-  image: Joi.string().optional(),
+  productName: Joi.string().min(2).max(120).required(),
+  productPrice: Joi.number().positive().required(),
+  quantity: Joi.number().min(0).required(),
+  image: Joi.allow(),
+  category: Joi.string().required(),
+  description: Joi.string().allow("").optional(),
+  supplierId: Joi.string().optional(),
 });
 
 export const updateCartItemSchema = Joi.object({

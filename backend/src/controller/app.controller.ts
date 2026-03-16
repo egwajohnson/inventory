@@ -164,9 +164,7 @@ export class AppController {
   ): Promise<Response> => {
     try {
       const userId = req.user.id;
-      console.log("Authenticated user ID:", userId);
       const product = req.body;
-      console.log("Received body:", product);
 
       if (!req.file) {
         return res.status(400).json({
@@ -174,10 +172,10 @@ export class AppController {
           error: "Product image is required",
         });
       }
-      const path = req.file.path;
-      product.image = path;
+      const imageFilename = req.file.filename;
+      product.image = imageFilename;
 
-      const response = await AppService.createProduct(product, userId, path);
+      const response = await AppService.createProduct(product, userId);
       return res.status(201).json({ success: true, payload: response });
     } catch (error: any) {
       return res.status(400).json({
@@ -299,11 +297,16 @@ export class AppController {
 
   static getCart = async (req: IRequest, res: Response) => {
     try {
+      if (!req.user) {
+        throw throwCustomError("Unauthorized", 401);
+      }
       const userId = req.user.id;
       const response = await AppService.getCart(userId);
       res.status(200).json(response);
     } catch (error: any) {
-      res.status(404).json({ success: false, payload: error.message });
+      res
+        .status(error.statusCode || 500)
+        .json({ success: false, payload: error.message });
     }
   };
 
@@ -314,7 +317,7 @@ export class AppController {
       const response = await AppService.createCoupon(userId, data);
       res.status(201).json(response);
     } catch (error: any) {
-      res.status(404).json({ success: false, payload: error.message });
+      res.status(500).json({ success: false, payload: error.message });
     }
   };
 

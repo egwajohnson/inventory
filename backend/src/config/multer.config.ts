@@ -15,13 +15,13 @@ const storage = multer.diskStorage({
     let folder: string;
 
     if (file.mimetype.startsWith("image/")) {
-      folder = "uploads/images";
+      folder = path.join(UPLOAD_ROOT, "images");
     } else if (file.mimetype.startsWith("video/")) {
-      folder = "uploads/videos";
+      folder = path.join(UPLOAD_ROOT, "videos");
     } else if (file.mimetype.startsWith("audio/")) {
-      folder = "uploads/audios";
+      folder = path.join(UPLOAD_ROOT, "audios");
     } else if (file.mimetype === "application/pdf") {
-      folder = "uploads/pdf";
+      folder = path.join(UPLOAD_ROOT, "pdf");
     } else {
       return cb(new Error("Unsupported file type"), "");
     }
@@ -37,7 +37,7 @@ const storage = multer.diskStorage({
       .replace(/[^a-zA-Z0-9-_]/g, "_");
 
     const uniqueName = `${baseName}-${Date.now()}-${Math.round(
-      Math.random() * 1e9
+      Math.random() * 1e9,
     )}${ext}`;
 
     cb(null, uniqueName);
@@ -68,6 +68,6 @@ export const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB
+    fileSize: 50 * 1024 * 1024, // 10MB
   },
 });
