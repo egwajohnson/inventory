@@ -1,12 +1,12 @@
 
 services:
   app:
-    container_name: INVENTORY
+    container_name: Backend
     build: .
     env_file:
       - .env
     ports:
-      - "4000:4000"
+      - "5000:5000"
     volumes:
       - ./src:/app/src
     depends_on:
@@ -14,7 +14,7 @@ services:
 
   mongo:
     image: mongo
-    container_name: mongodbb
+    container_name: mongodb
     restart: always
     ports:
       - "27017:27017"
