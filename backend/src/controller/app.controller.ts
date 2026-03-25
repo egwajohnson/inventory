@@ -310,6 +310,28 @@ export class AppController {
     }
   };
 
+  static updateCart = async (req: IRequest, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const { productId, quantity } = req.body;
+
+      const updatedItem = await AppService.updateCart(
+        userId,
+        productId,
+        quantity,
+      );
+
+      res.status(200).json({
+        success: true,
+        item: updatedItem,
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        message: error.message,
+      });
+    }
+  };
+
   static createCoupon = async (req: IRequest, res: Response) => {
     try {
       const userId = req.user.id;

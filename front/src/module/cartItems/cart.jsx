@@ -18,7 +18,6 @@ function Cart() {
       const res = await axios.get("http://localhost:5000/api/v1/cart", {
         headers,
       });
-
       setCart(res.data.items || []);
     } catch (error) {
       console.error("Cart fetch error:", error.response?.data || error.message);
@@ -28,29 +27,32 @@ function Cart() {
   // Delete cart item
   const deleteItem = async (itemId) => {
     try {
-      await axios.delete(`http://localhost:5000/api/v1/cart/item/${itemId}`, {
-        headers,
-      });
-
-      getCart();
+      await axios.delete(
+        `http://localhost:5000/api/v1/cart/item/${itemId}`,
+        { headers },
+        setCart((prev) => prev.filter((item) => item._id !== itemId)),
+      );
     } catch (error) {
       console.error("Delete error:", error.response?.data || error.message);
     }
   };
 
-  // Update quantity
   const handleUpdate = async (productId, quantity) => {
     if (quantity < 1) return;
 
-    await updateCart(productId, quantity);
-    getCart();
+    try {
+      const data = await updateCart(productId, quantity);
+
+      setCart(data.items || []);
+    } catch (error) {
+      console.error("Update failed", error);
+    }
   };
 
   useEffect(() => {
     getCart();
   }, []);
 
-  // Calculate total cart amount
   const total = cart.reduce((acc, item) => acc + (item.amount || 0), 0);
 
   return (
@@ -69,9 +71,8 @@ function Cart() {
                 Product Name: {item.productId?.productName || "Unknown Product"}
               </div>
 
-              <div>
-                Qty: {item.quantity} | Price: {item.productPrice}
-              </div>
+              <div>Quantity: {item.quantity}</div>
+              <div>Price: {item.productPrice}</div>
 
               <div>Amount: {item.amount}</div>
             </div>

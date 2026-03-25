@@ -260,6 +260,15 @@ export class ProductRepository {
 
     return finalCart;
   };
+
+  static async updateCart(userId: Types.ObjectId) {
+    const updated = await CartModel.findOne({ userId });
+    return updated;
+  }
+
+  static async save(cart: any) {
+    return cart.save();
+  }
   // coupon code creation
   static async createCoupon(userId: Types.ObjectId, data: ICoupon) {
     const coupon = await CouponModel.create({

@@ -72,6 +72,11 @@ router.post(
 );
 router.post("/cart/add", authMiddleware as any, AppController.addToCart as any);
 router.get("/cart", authMiddleware as any, AppController.getCart as any);
+router.put(
+  "/cart/update",
+  authMiddleware as any,
+  AppController.updateCart as any,
+);
 
 //coupon routes
 router.post(

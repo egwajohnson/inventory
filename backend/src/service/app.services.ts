@@ -696,6 +696,76 @@ export class AppService {
     return cart;
   };
 
+  static updateCart = async (
+    userId: Types.ObjectId,
+    productId: string,
+    quantity: number,
+  ) => {
+    if (!quantity || quantity < 1) {
+      throw new Error("Valid quantity is required");
+    }
+    const updated = await ProductRepository.updateCart(userId);
+    if (!updated) {
+      throw throwCustomError("Cart not foud", 400);
+    }
+
+    const item = updated.items.find((i: any) => {
+      const id =
+        typeof i.productId === "object"
+          ? i.productId._id.toString()
+          : i.productId.toString();
+
+      return id === productId;
+    });
+
+    if (!item) {
+      throw new Error("Item not found in cart");
+    }
+
+    item.quantity += quantity;
+
+    updated.markModified("items");
+
+    updated.totalPrice = updated.items.reduce(
+      (acc: number, i: any) => acc + (i.productPrice - i.discount) * i.quantity,
+      0,
+    );
+
+    await updated.save();
+    return updated;
+  };
+
+  //removed frm cart
+  static async removeItem(userId: Types.ObjectId, productId: string) {
+    const cart = await ProductRepository.updateCart(userId);
+
+    if (!cart) {
+      throw new Error("Cart not found");
+    }
+
+    cart.items = cart.items.filter(
+      (i: any) => i.productId.toString() !== productId,
+    );
+
+    cart.totalPrice = cart.items.reduce(
+      (acc: number, i: any) => acc + (i.productPrice - i.discount) * i.quantity,
+      0,
+    );
+
+    return ProductRepository.save(cart);
+  }
+
+  //   static async getCarts(userId: string) {
+  //     const cart = await CartRepository.findByUserId(userId);
+
+  //     if (!cart) {
+  //       return { items: [], totalPrice: 0 };
+  //     }
+
+  //     return cart;
+  //   }
+  // }
+
   // coupon section service
   static createCoupon = async (userId: Types.ObjectId, data: ICoupon) => {
     if (!userId) {
