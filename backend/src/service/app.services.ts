@@ -736,23 +736,42 @@ export class AppService {
   };
 
   //removed frm cart
-  static async removeItem(userId: Types.ObjectId, productId: string) {
+  static async removeItem(
+    userId: Types.ObjectId,
+    productId: string,
+    quantity: number,
+  ) {
     const cart = await ProductRepository.updateCart(userId);
 
     if (!cart) {
       throw new Error("Cart not found");
     }
 
-    cart.items = cart.items.filter(
-      (i: any) => i.productId.toString() !== productId,
+    const item = cart.items.find(
+      (i: any) => i.productId.toString() === productId,
     );
+
+    if (!item) {
+      throw throwCustomError("Nothing in Cart to remove", 400);
+    }
+
+    item.quantity -= quantity;
+
+    if (item.quantity <= 0) {
+      cart.items = cart.items.filter(
+        (i: any) => i.productId.toString() !== productId,
+      );
+    }
+
+    cart.markModified("items");
 
     cart.totalPrice = cart.items.reduce(
       (acc: number, i: any) => acc + (i.productPrice - i.discount) * i.quantity,
       0,
     );
 
-    return ProductRepository.save(cart);
+    await cart.save();
+    return cart;
   }
 
   //   static async getCarts(userId: string) {

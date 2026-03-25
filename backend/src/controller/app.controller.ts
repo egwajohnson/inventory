@@ -332,6 +332,21 @@ export class AppController {
     }
   };
 
+  static removeItem = async (req: IRequest, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const { productId, quantity } = req.body;
+      const removeItem = await AppService.removeItem(
+        userId,
+        productId,
+        quantity,
+      );
+      res.status(201).json({ success: true, item: removeItem });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  };
+
   static createCoupon = async (req: IRequest, res: Response) => {
     try {
       const userId = req.user.id;
