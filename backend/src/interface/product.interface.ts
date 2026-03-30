@@ -30,7 +30,7 @@ export interface Cart {
 
 export interface AddToCartDTO {
   productId: Types.ObjectId;
-  cartId?: Types.ObjectId;
+  cartId: Types.ObjectId;
   quantity: number;
 }
 

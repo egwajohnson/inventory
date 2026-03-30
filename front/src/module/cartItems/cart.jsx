@@ -25,12 +25,17 @@ function Cart() {
   };
 
   // Delete cart item
-  const deleteItem = async (itemId) => {
+  const deleteItem = async (productId) => {
     try {
       await axios.delete(
-        `http://localhost:5000/api/v1/cart/item/${itemId}`,
-        { headers },
-        setCart((prev) => prev.filter((item) => item._id !== itemId)),
+        `http://localhost:5000/api/v1/cart/item/${productId}`,
+        {
+          headers,
+        },
+      );
+
+      setCart((prev) =>
+        prev.filter((item) => item.productId._id !== productId),
       );
     } catch (error) {
       console.error("Delete error:", error.response?.data || error.message);
@@ -53,7 +58,13 @@ function Cart() {
     getCart();
   }, []);
 
-  const total = cart.reduce((acc, item) => acc + (item.amount || 0), 0);
+  const total = cart.reduce((acc, item) => {
+    const price = item.productPrice || 0;
+    const discount = item.discount || 0;
+    const qty = item.quantity || 0;
+
+    return acc + (price - discount) * qty;
+  }, 0);
 
   return (
     <div className="container">
@@ -71,32 +82,33 @@ function Cart() {
                 Product Name: {item.productId?.productName || "Unknown Product"}
               </div>
 
-              <div>Quantity: {item.quantity}</div>
+              <div>
+                Quantity:
+                <button
+                  onClick={() =>
+                    handleUpdate(item.productId._id, item.quantity - 1)
+                  }
+                  disabled={item.quantity <= 1}
+                  style={{ marginLeft: 5 }}
+                >
+                  -
+                </button>
+                <span style={{ margin: "0 8px" }}>{item.quantity}</span>
+                <button
+                  onClick={() =>
+                    handleUpdate(item.productId._id, item.quantity + 1)
+                  }
+                >
+                  +
+                </button>
+              </div>
               <div>Price: {item.productPrice}</div>
-
-              <div>Amount: {item.amount}</div>
             </div>
 
             <div className="cart-actions">
               <button
-                onClick={() =>
-                  handleUpdate(item.productId?._id, item.quantity + 1)
-                }
-              >
-                +
-              </button>
-
-              <button
-                onClick={() =>
-                  handleUpdate(item.productId?._id, item.quantity - 1)
-                }
-              >
-                -
-              </button>
-
-              <button
                 className="delet"
-                onClick={() => deleteItem(item._id)}
+                onClick={() => deleteItem(item.productId._id)}
                 title="Remove item"
               >
                 <FaTrash size={18} />
@@ -105,7 +117,7 @@ function Cart() {
           </div>
         ))}
 
-        <h3>Total: {total}</h3>
+        <h3> Total: ₦{total.toLocaleString()}</h3>
       </div>
 
       <button onClick={() => handlePayment(total)}>Pay Now</button>

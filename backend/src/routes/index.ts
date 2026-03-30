@@ -72,13 +72,18 @@ router.post(
 );
 router.post("/cart/add", authMiddleware as any, AppController.addToCart as any);
 router.get("/cart", authMiddleware as any, AppController.getCart as any);
+router.delete(
+  "/cart/item/:productId",
+  authMiddleware as any,
+  AppController.deleteCartItem as any,
+);
 router.put(
-  "/cart/update",
+  "/cart/quantity/increase",
   authMiddleware as any,
   AppController.updateCart as any,
 );
 router.patch(
-  "/cart/remove",
+  "/cart/quantity/decrese",
   authMiddleware as any,
   AppController.removeItem as any,
 );

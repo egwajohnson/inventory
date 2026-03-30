@@ -288,6 +288,7 @@ export class AppController {
     try {
       const userId = req.user.id;
       const data = req.body;
+
       const response = await AppService.addToCart(userId, data);
       res.status(201).json(response);
     } catch (error: any) {
@@ -344,6 +345,22 @@ export class AppController {
       res.status(201).json({ success: true, item: removeItem });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
+    }
+  };
+
+  static deleteCartItem = async (req: IRequest, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const { productId } = req.params;
+      const cart = await AppService.deleteCartItem(userId, productId);
+      res.status(201).json({
+        success: true,
+        item: cart.items,
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        message: error.message,
+      });
     }
   };
 

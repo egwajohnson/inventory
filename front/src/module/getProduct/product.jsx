@@ -8,6 +8,7 @@ function Products() {
 
   const [products, setProducts] = useState([]);
   const [cartCount, setCartCount] = useState(0);
+  const [loadingId, setLoadingId] = useState(null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 10;
@@ -27,10 +28,9 @@ function Products() {
     if (!token || !cartId) return;
 
     try {
-      const res = await axios.get(
-        `http://localhost:5000/api/v1/cart/${cartId}`,
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
+      const res = await axios.get("http://localhost:5000/api/v1/cart", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       setCartCount(res.data.items.length || 0);
     } catch (err) {
@@ -44,15 +44,29 @@ function Products() {
   }, []);
 
   const handleAddToCart = async (productId) => {
-    if (!localStorage.getItem("token")) {
+    const token = localStorage.getItem("token");
+    const cartId = localStorage.getItem("cartId");
+
+    if (!token || !cartId) {
       alert("You must login to add to cart");
       return;
     }
+    setLoadingId(productId);
 
-    const result = await addToCart(productId);
+    try {
+      const result = await addToCart(productId);
 
-    if (result) {
-      setCartCount(result.items?.length || cartCount + 1);
+      const totalQty = result.items.reduce(
+        (acc, item) => acc + item.quantity,
+        0,
+      );
+
+      setCartCount(totalQty);
+      await getProducts();
+    } catch (err) {
+      console.error("Add to cart failed", err);
+    } finally {
+      setLoadingId(null);
     }
   };
 
@@ -104,9 +118,10 @@ function Products() {
 
             <button
               className="cart-btn"
+              disabled={loadingId === product._id}
               onClick={() => handleAddToCart(product._id)}
             >
-              Add To Cart
+              {loadingId === product._id ? "Adding..." : "Add To Cart"}
             </button>
           </div>
         ))}

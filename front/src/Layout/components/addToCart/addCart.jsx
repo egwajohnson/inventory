@@ -8,46 +8,22 @@ const addToCart = async (productId, quantity = 1) => {
   }
 
   let cartId = localStorage.getItem("cartId");
-
-  const cart_url = "http://localhost:5000/api/v1/cart/add";
-  const createCart_url = "http://localhost:5000/api/v1/cart/create";
   try {
-    if (!cartId) {
-      const createCartRes = await axios.post(
-        createCart_url,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-
-      console.log("Cart created:", createCartRes.data);
-
-      cartId = createCartRes.data._id;
-      if (!cartId) {
-        console.error("Cart creation failed, no _id returned");
-        return null;
-      }
-
-      localStorage.setItem("cartId", cartId);
-    }
-
     const response = await axios.post(
-      cart_url,
-      {
-        productId,
-        cartId,
-        quantity,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
+      "http://localhost:5000/api/v1/cart/add",
+      { cartId, productId, quantity },
+      { headers: { Authorization: `Bearer ${token}` } },
     );
 
-    alert("Product added to cart");
-    console.log("Product added to cart:", response.data);
+    const cart = response.data;
+    if (cart?._id) {
+      localStorage.setItem("cartId", cart._id);
+    }
 
-    return response.data;
+    alert("Product added to cart");
+    console.log("Product added to cart:", cart);
+
+    return cart;
   } catch (error) {
     if (error.response) {
       console.error("Server error:", error.response.data);

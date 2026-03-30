@@ -643,8 +643,7 @@ export class AppService {
     return cart;
   };
 
-  static addToCart = async (userId: Types.ObjectId, data: Cart) => {
-    const { cartId } = data;
+  static addToCart = async (userId: Types.ObjectId, data: AddToCartDTO) => {
     const { error, value } = updateCartItemSchema.validate(data);
     if (error) {
       throw throwCustomError(error.details[0].message, 400);
@@ -701,38 +700,52 @@ export class AppService {
     productId: string,
     quantity: number,
   ) => {
+    if (!userId) {
+      throw throwCustomError("User ID is required to update the cart.", 400);
+    }
+
+    if (!productId) {
+      throw throwCustomError("Product ID is required.", 400);
+    }
+
     if (!quantity || quantity < 1) {
-      throw new Error("Valid quantity is required");
-    }
-    const updated = await ProductRepository.updateCart(userId);
-    if (!updated) {
-      throw throwCustomError("Cart not foud", 400);
+      throw throwCustomError("Valid quantity is required", 400);
     }
 
-    const item = updated.items.find((i: any) => {
-      const id =
-        typeof i.productId === "object"
-          ? i.productId._id.toString()
-          : i.productId.toString();
-
-      return id === productId;
-    });
-
-    if (!item) {
-      throw new Error("Item not found in cart");
+    const cart = await ProductRepository.updateCart(userId);
+    if (!cart) {
+      throw throwCustomError("Cart not found", 404);
     }
 
-    item.quantity += quantity;
+    const existingItem = cart.items.find((item) =>
+      new mongoose.Types.ObjectId(item.productId).equals(productId),
+    );
 
-    updated.markModified("items");
+    if (existingItem) {
+      existingItem.quantity += quantity;
+    } else {
+      const product =
+        await ProductModel.findById(productId).select("productPrice");
+      if (!product) throw throwCustomError("Product not found", 404);
 
-    updated.totalPrice = updated.items.reduce(
-      (acc: number, i: any) => acc + (i.productPrice - i.discount) * i.quantity,
+      cart.items.push({
+        productId: product._id,
+        quantity,
+        productPrice: product.productPrice,
+        discount: 0,
+      });
+    }
+
+    cart.totalPrice = cart.items.reduce(
+      (sum, item) =>
+        sum + (item.productPrice - (item.discount || 0)) * item.quantity,
       0,
     );
 
-    await updated.save();
-    return updated;
+    cart.markModified("items");
+    await cart.save();
+
+    return cart;
   };
 
   //removed frm cart
@@ -772,6 +785,23 @@ export class AppService {
 
     await cart.save();
     return cart;
+  }
+
+  static async deleteCartItem(userId: Types.ObjectId, productId: string) {
+    if (!productId) {
+      throw new Error("productId is required");
+    }
+    console.log("productId hererer", productId);
+    const del = await ProductRepository.deleteCartItem(userId, productId);
+    console.log("delete mmmm", del);
+    if (!del) {
+      throw throwCustomError("product not deleted", 400);
+    }
+
+    del.items = del.items.filter(
+      (item) => item.productId.toString() !== productId.toString(),
+    );
+    return del;
   }
 
   //   static async getCarts(userId: string) {

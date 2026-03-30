@@ -1,4 +1,5 @@
 import express from "express";
+import mongoose from "mongoose";
 import { product } from "../interface/product.interface";
 import { ProductModel } from "../models/product.model";
 import { SaleModel } from "../models/sale.model";
@@ -154,111 +155,80 @@ export class ProductRepository {
     data: AddToCartDTO,
     session?: ClientSession,
   ) => {
-    const { cartId, quantity } = data;
+    const { cartId, productId, quantity } = data;
 
-    if (!userId || !data.productId) {
+    if (!userId || !productId) {
       throw new Error("User ID and Product ID are required");
     }
 
     // Get product price
-    const product = await ProductModel.findById(data.productId)
+    const product = await ProductModel.findById(productId)
       .select("productPrice")
       .session(session ?? null);
+
     if (!product) throw new Error("Product not found");
 
     const itemPrice = product.productPrice;
 
-    //  Initialize cart variable
-    let cart: HydratedDocument<Cart> | null = null;
+    let cart = await CartModel.findOne({ userId }).session(session ?? null);
 
-    //  Remove item if quantity = 0
-    if (quantity === 0) {
-      cart = await CartModel.findOneAndUpdate(
-        { _id: cartId, userId },
-        { $pull: { items: { productId: data.productId } } },
-        { new: true, session },
+    if (cart) {
+      const existingItem = cart.items.find((item) =>
+        new mongoose.Types.ObjectId(item.productId).equals(productId),
       );
+
+      if (quantity === 0) {
+        cart.items = cart.items.filter(
+          (item) =>
+            !new mongoose.Types.ObjectId(item.productId).equals(productId),
+        );
+      } else if (existingItem) {
+        existingItem.quantity += quantity;
+        existingItem.productPrice = itemPrice;
+      } else {
+        cart.items.push({
+          productId,
+          quantity,
+          productPrice: itemPrice,
+          discount: 0,
+        });
+      }
     } else {
-      //  Increment quantity if item exists
-      cart = await CartModel.findOneAndUpdate(
-        { _id: cartId, userId, "items.productId": data.productId },
-        {
-          $set: {
-            "items.$.quantity": quantity,
-            "items.$.productPrice": itemPrice,
-          },
-        },
-        { new: true, session },
-      );
-
-      // Push new item if it doesn’t exist
-      if (!cart) {
-        cart = await CartModel.findOneAndUpdate(
-          { _id: cartId, userId },
+      // Create cart if it doesn't exist
+      cart = await CartModel.create(
+        [
           {
-            $push: {
-              items: {
-                productId: data.productId,
+            userId,
+            items: [
+              {
+                productId,
                 quantity,
                 productPrice: itemPrice,
-              },
-            },
-          },
-          { new: true, session },
-        );
-
-        // Create cart if it doesn’t exist
-        if (!cart) {
-          const created = await CartModel.create(
-            [
-              {
-                userId,
-                items: [
-                  {
-                    productId: data.productId,
-                    quantity,
-                    productPrice: itemPrice,
-                  },
-                ],
-                totalPrice: quantity * itemPrice,
+                discount: 0,
               },
             ],
-            { session },
-          );
-          cart = created && created.length > 0 ? created[0] : null;
-          if (!cart) throw new Error("Failed to create cart");
-        }
-      }
+            totalPrice: quantity * itemPrice,
+          },
+        ],
+        { session },
+      ).then((res) => res[0]);
+      if (!cart) throw new Error("Failed to create cart");
     }
 
-    if (!cart) {
-      throw new Error("Cart not found after update");
-    }
-    const cartQuery = CartModel.findOne({ _id: cart._id, userId });
-    const finalCart = session
-      ? await cartQuery.session(session)
-      : await cartQuery;
+    const itemTotal = cart.items.reduce((sum, item) => {
+      const price = Number(item.productPrice ?? 0);
+      const discount = Number(item.discount ?? 0);
+      const effectivePrice = Math.max(price - discount, 0);
+      return sum + item.quantity * effectivePrice;
+    }, 0);
 
-    if (!finalCart) throw new Error("Cart not found after update");
+    const couponDiscount = cart.couponCode?.discount ?? 0;
+    cart.totalPrice = Math.max(itemTotal - couponDiscount, 0);
 
-    const itemTotal = finalCart.items.reduce(
-      (sum, item) => {
-        const productPrice = Number(item.productPrice ?? 0);
-        const discount = Number(item.discount ?? 0);
+    cart.markModified("items");
+    await cart.save({ session });
 
-        const effectivePrice = Math.max(productPrice - discount, 0);
-        return sum + item.quantity * effectivePrice;
-      },
-
-      0,
-    );
-    const couponDiscount = finalCart.couponCode?.discount ?? 0;
-
-    finalCart.totalPrice = Math.max(itemTotal - couponDiscount, 0);
-
-    await finalCart.save({ session });
-
-    return finalCart;
+    return cart;
   };
 
   static async updateCart(userId: Types.ObjectId) {
@@ -268,6 +238,24 @@ export class ProductRepository {
 
   static async save(cart: any) {
     return cart.save();
+  }
+
+  static async deleteCartItem(userId: Types.ObjectId, productId: string) {
+    const cart = await CartModel.findOne({ userId });
+
+    if (!cart) return null;
+
+    cart.items = cart.items.filter(
+      (item) => item.productId.toString() !== productId,
+    );
+
+    cart.totalPrice = cart.items.reduce((acc, item) => {
+      return acc + (item.productPrice - (item.discount || 0)) * item.quantity;
+    }, 0);
+
+    await cart.save();
+
+    return cart;
   }
   // coupon code creation
   static async createCoupon(userId: Types.ObjectId, data: ICoupon) {
