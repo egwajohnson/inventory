@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import RequestOtp from "../Layout/components/requestOtp/requestOtp";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -32,19 +33,6 @@ export default function Login() {
       localStorage.setItem("token", data.payload.token);
 
       console.log("Login successful, token stored:", data.payload.token);
-
-      // if(data.payload.role === "admin") {
-      //   navigate("/dashboard");
-      // } else {
-      //   navigate("/Pre");
-      // }
-
-      // if (data.payload.success) {
-      //   console.log("Login successful");
-      //   navigate("/dashboard");
-      // } else {
-      //   throw new Error(data.message || "Login failed");
-      // }
 
       // Redirect to dashboard
       navigate("/dashboard");
@@ -81,6 +69,9 @@ export default function Login() {
             <br />
             <button type="submit">Login</button>
           </form>
+          <button className="forget">
+            <a href="/RequestOtp">Reset Password?</a>
+          </button>
         </div>
       </div>
     </>

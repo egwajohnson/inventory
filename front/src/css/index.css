@@ -52,8 +52,9 @@ body {
   align-items: center;
   justify-content: center;
 }
-.contain .login h1 {
-  font-size: 2rem;
+.contain .login h1,
+h2 {
+  font-size: 1.5rem;
   margin-bottom: 20px;
 }
 .contain .login input,
@@ -69,6 +70,18 @@ select {
   border-color: #4f46e5;
   box-shadow: 0 0 3px rgba(79, 70, 229, 0.3);
 }
+.contain .login .request {
+  margin-top: 2px;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  color: #333;
+}
+.contain .login select {
+  width: 100%;
+  padding: 10px;
+  margin: 5px;
+}
 .contain .login button {
   padding: 10px;
   background-color: #535bf2;
@@ -80,6 +93,63 @@ select {
 .contain .login button:hover {
   background-color: #4141c2;
 }
+/* forgot password css styling */
+.contain .reset-password {
+  width: 350px;
+  height: 400px;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.contain .reset-password form {
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.contain .reset-password form input {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+.contain .reset-password form input:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 3px rgba(79, 70, 229, 0.3);
+}
+.contain .reset-password form button {
+  padding: 10px;
+  background-color: #535bf2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.contain .reset-password form button:hover {
+  background-color: #4141c2;
+}
+.contain .reset-password h2 {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+}
+/* .contain .reset-password .new-password {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  justify-content: center;
+} */
+.contain .reset-password .rquest {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+}
+
 .contain .pre {
   width: 300px;
   height: 400px;

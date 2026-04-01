@@ -34,7 +34,7 @@ router.delete(
 );
 router.get("/user/:id", authMiddleware as any, AppController.findUserById);
 router.post("/login", AppController.loginUser as any);
-router.post("/user/gen-otp", AppController.createOtp);
+router.post("/user/request-otp", AppController.createOtp);
 router.post("/user/reset-password", AppController.passwordReset);
 
 //product routes

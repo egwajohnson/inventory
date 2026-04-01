@@ -6,7 +6,8 @@ import Dashboard from "./module/dashboard/dashboard";
 import AppLayout from "./Layout/AppLout";
 import Error from "./Layout/components/error/error";
 import Cart from "./module/cartItems/cart";
-
+import ForgotPassword from "./Layout/components/forgotPassword/forgotPassword";
+import RequestOtp from "./Layout/components/requestOtp/requestOtp";
 import Create from "./module/createProduct";
 import Products from "./module/getProduct/product";
 
@@ -14,6 +15,14 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <Login />,
+  },
+  {
+    path: "/ForgotPassword",
+    element: <ForgotPassword />,
+  },
+  {
+    path: "/RequestOtp",
+    element: <RequestOtp />,
   },
   {
     element: <AppLayout />,
