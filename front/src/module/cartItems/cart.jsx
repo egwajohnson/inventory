@@ -42,17 +42,23 @@ function Cart() {
     }
   };
 
-  const handleUpdate = async (productId, quantity) => {
-    if (quantity < 1) return;
-
+  const handleUpdateCart = async (productId, delta) => {
     try {
-      const data = await updateCart(productId, quantity);
+      const data = await updateCart(productId, delta);
 
-      setCart(data.items || []);
+      if (!data?.item?.items) {
+        console.error("Cart update failed", data);
+        return;
+      }
+
+      setCart(data.item.items);
     } catch (error) {
-      console.error("Update failed", error);
+      console.error("Cart update error", error);
     }
   };
+
+  const handleIncrease = (id) => handleUpdateCart(id, 1);
+  const handleDecrease = (id) => handleUpdateCart(id, -1);
 
   useEffect(() => {
     getCart();
@@ -76,7 +82,7 @@ function Cart() {
         {cart.map((item) => (
           <div key={item._id} className="del">
             <div className="prod">
-              <div>Product ID: {item.productId?._id}</div>
+              <div>Product ID: {item.productId?._id || "N/A"}</div>
 
               <div>
                 Product Name: {item.productId?.productName || "Unknown Product"}
@@ -85,20 +91,14 @@ function Cart() {
               <div>
                 Quantity:
                 <button
-                  onClick={() =>
-                    handleUpdate(item.productId._id, item.quantity - 1)
-                  }
+                  onClick={() => handleDecrease(item.productId._id)}
                   disabled={item.quantity <= 1}
                   style={{ marginLeft: 5 }}
                 >
                   -
                 </button>
                 <span style={{ margin: "0 8px" }}>{item.quantity}</span>
-                <button
-                  onClick={() =>
-                    handleUpdate(item.productId._id, item.quantity + 1)
-                  }
-                >
+                <button onClick={() => handleIncrease(item.productId._id)}>
                   +
                 </button>
               </div>

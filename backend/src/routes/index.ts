@@ -87,6 +87,16 @@ router.patch(
   authMiddleware as any,
   AppController.removeItem as any,
 );
+router.patch(
+  "/cart/update",
+  authMiddleware as any,
+  AppController.updateCartItem as any,
+);
+router.delete(
+  "/cart/clear",
+  authMiddleware as any,
+  AppController.clearCart as any,
+);
 
 //coupon routes
 router.post(

@@ -747,6 +747,43 @@ export class AppService {
 
     return cart;
   };
+  static async updateCartItem(
+    userId: Types.ObjectId,
+    productId: string,
+    quantity: number,
+  ) {
+    if (!userId) {
+      throw throwCustomError("User ID is required to update cart item.", 400);
+    }
+
+    if (!productId) {
+      throw throwCustomError("Product ID is required.", 400);
+    }
+
+    if (quantity === 0) {
+      throw throwCustomError("Quantity cannot be zero", 400);
+    }
+
+    const cart = await ProductRepository.updateCartItem(
+      userId,
+      productId,
+      quantity,
+    );
+
+    if (!cart) {
+      throw throwCustomError("Failed to update cart item", 500);
+    }
+
+    return cart;
+  }
+
+  static async clearCart(userId: Types.ObjectId) {
+    if (!userId) {
+      throw throwCustomError("User ID is required to clear the cart.", 400);
+    }
+    const cart = await ProductRepository.clearCart(userId);
+    return cart;
+  }
 
   //removed frm cart
   static async removeItem(

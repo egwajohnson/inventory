@@ -332,6 +332,44 @@ export class AppController {
       });
     }
   };
+  static updateCartItem = async (req: IRequest, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const { productId, quantity } = req.body;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      if (!productId) {
+        return res.status(400).json({ message: "Product ID is required" });
+      }
+
+      if (quantity === undefined) {
+        return res.status(400).json({ message: "Quantity is required" });
+      }
+      const response = await AppService.updateCartItem(
+        userId,
+        productId,
+        quantity,
+      );
+      res.status(200).json({ success: true, item: response });
+    } catch (error: any) {
+      res.status(error.statusCode || 500).json({
+        message: error.message || "Internal server error",
+      });
+    }
+  };
+
+  static clearCart = async (req: IRequest, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const response = await AppService.clearCart(userId);
+      res.status(200).json(response);
+    } catch (error: any) {
+      res.status(500).json({
+        message: error.message,
+      });
+    }
+  };
 
   static removeItem = async (req: IRequest, res: Response) => {
     try {

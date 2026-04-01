@@ -235,6 +235,50 @@ export class ProductRepository {
     const updated = await CartModel.findOne({ userId });
     return updated;
   }
+  static async updateCartItem(
+    userId: Types.ObjectId,
+    productId: string,
+    quantity: number,
+  ) {
+    const cart = await CartModel.findOne({ userId }).populate(
+      "items.productId",
+    );
+    if (!cart) throw new Error("Cart not found");
+
+    const item = cart.items.find((item) => {
+      const id = item.productId._id
+        ? item.productId._id.toString()
+        : item.productId.toString();
+      return id === productId;
+    });
+    if (!item) {
+      throw new Error("Product not found in cart");
+    }
+
+    item.quantity += quantity;
+
+    if (item.quantity <= 0) {
+      cart.items = cart.items.filter(
+        (i) => i.productId.toString() !== productId,
+      );
+    }
+
+    cart.totalPrice = cart.items.reduce((acc, item) => {
+      return acc + (item.productPrice - (item.discount || 0)) * item.quantity;
+    }, 0);
+
+    await cart.save();
+    return cart;
+  }
+  static async clearCart(userId: Types.ObjectId) {
+    const cart = await CartModel.findOne({ userId });
+    if (cart) {
+      cart.items = [];
+      cart.totalPrice = 0;
+      await cart.save();
+    }
+    return cart;
+  }
 
   static async save(cart: any) {
     return cart.save();
