@@ -1,6 +1,6 @@
-export interface preRegister{
+export interface preRegister {
   email: string;
   password: string;
-  position: "admin" | "staff";
+  position: "admin" | "manager" | "customer" | "merchant";
   isVarified: boolean;
 }

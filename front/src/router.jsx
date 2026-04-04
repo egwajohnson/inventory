@@ -1,6 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import Login from "./login";
-import Pre from "./module/pre/pre";
+import PreRegister from "./module/preRegister/preRegister";
 import Register from "./module/register/register";
 import Dashboard from "./module/dashboard/dashboard";
 import AppLayout from "./Layout/AppLout";
@@ -11,6 +11,7 @@ import RequestOtp from "./Layout/components/requestOtp/requestOtp";
 import Create from "./module/createProduct";
 import Products from "./module/getProduct/product";
 import Logout from "./logout/logout";
+import ProtectedRoute from "./module/ProtectedRoute/protectedRouter";
 
 const router = createBrowserRouter([
   {
@@ -34,7 +35,11 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/dashboard",
-        element: <Dashboard />,
+        element: (
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        ),
       },
     ],
   },
@@ -70,8 +75,8 @@ const router = createBrowserRouter([
     element: <Cart />,
   },
   {
-    path: "/Pre",
-    element: <Pre />,
+    path: "/preRegister",
+    element: <PreRegister />,
   },
   {
     path: "/register",

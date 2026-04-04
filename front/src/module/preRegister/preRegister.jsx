@@ -37,7 +37,7 @@ export default function PreRegister() {
       setMessage(data.message || "Pre-registration successful!");
       setEmail("");
       setPassword("");
-      setPosition("staff"); // reset
+      setPosition("admin");
       navigate("/register");
     } catch (err) {
       if (err instanceof Error) setError(err.message);
@@ -88,7 +88,9 @@ export default function PreRegister() {
                 required
               >
                 <option value="admin">Admin</option>
-                <option value="staff">Staff</option>
+                <option value="manager">Manager</option>
+                <option value="merchant">Merchant</option>
+                <option value="customer">Customer</option>
               </select>
             </div>
 
