@@ -5,10 +5,12 @@ import logout from "../../../logout/logout";
 function Header() {
   return (
     <>
-    <header className="header">
-      <h1>Inventory Management System</h1>
+    <header className="header-container">
+      <div className="logo">
+      <h2>Inventory Management System</h2>
+      </div>
       <nav className="nav">
-        <ul>
+        <ul className="nav-list">
           <li><a href="/">Home</a></li>
           <li><a href="/about">About</a></li>
           <li><a href="/contact">Contact</a></li>
@@ -22,6 +24,7 @@ function Header() {
         <button onClick={logout}>Logout</button>
       </div>
     </header>
+    
     </>
   );
 }

@@ -4,13 +4,12 @@
   margin: 0%;
 }
 body {
-  box-sizing: border-box;
-  margin: 0px;
-  padding: 0px;
+  margin: 0;
   font-family: Arial, sans-serif;
   background-color: hsl(240, 10%, 94%);
 }
 .dashboard {
+  padding-top: 70px;
   width: 100%;
   justify-content: center;
   align-items: center;
@@ -33,7 +32,6 @@ body {
 
 /* login css styling */
 .contain {
-  width: 100vw;
   height: 100vh;
   display: flex;
   justify-content: center;
@@ -41,9 +39,11 @@ body {
   background-image: url("../assets/login.jpg");
   background-size: cover;
   background-position: center;
+  font-size: Arial, sans-serif;
 }
 .contain .login {
   width: 300px;
+  max-width: 90%;
   height: 400px;
   background-color: rgba(255, 255, 255, 0.8);
   border-radius: 8px;
@@ -51,6 +51,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 .contain .login h1,
 h2 {
@@ -60,10 +61,11 @@ h2 {
 .contain .login input,
 select {
   padding: 10px;
+  margin: 8px 0;
   border-radius: 6px;
   border: 1px solid #ccc;
-  font-size: 14px;
-  transition: all 0.2s ease;
+  font-size: 1rem;
+  transition: all 0.3s ease;
 }
 .contain .login input:focus {
   outline: none;
@@ -82,6 +84,22 @@ select {
   padding: 10px;
   margin: 5px;
 }
+.contain .login button[type="submit"] {
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
+  background-color: #1e90ff;
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.contain .login button[type="submit"]:hover {
+  background-color: #0073e6;
+}
 .contain .login button {
   padding: 10px;
   background-color: #535bf2;
@@ -92,6 +110,27 @@ select {
 }
 .contain .login button:hover {
   background-color: #4141c2;
+}
+.contain .login .forget {
+  margin-top: 15px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.contain .login .forget a {
+  text-decoration: none;
+  color: #1e90ff;
+  transition: color 0.3s;
+}
+.contain .login .forget a:hover {
+  color: #0073e6;
+  text-decoration: underline;
+}
+.contain .login p {
+  color: red;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
 }
 /* forgot password css styling */
 .contain .reset-password {
@@ -208,6 +247,7 @@ select:focus {
   cursor: not-allowed;
 }
 .container {
+  margin-top: 0.5rem;
   min-height: 100vh;
   font-family: Arial, Helvetica, sans-serif;
   display: flex;
@@ -523,29 +563,99 @@ button:hover {
   text-decoration: underline;
 }
 
-.header {
-  width: 100%;
-  height: 60px;
-  background-color: hsl(240, 10%, 94%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: sticky;
+.header-container {
+  position: fixed; /* stays on top */
   top: 0;
   left: 0;
+  width: 100%;
   z-index: 1000;
-}
-.header .nav {
-  width: 60%;
-  height: 3rem;
-  background-color: red;
   display: flex;
-  justify-content: center;
   align-items: center;
-  border-radius: 4px;
+  justify-content: space-between;
+  padding: 12px 25px;
+  background-color: #1e90ff; /* blue header */
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  flex-wrap: wrap;
 }
-.header .nav ul {
-  list-style: none;
+
+.header-container .logo h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+/* .header-container .nav {
   display: flex;
-  gap: 20px;
+  align-items: center;
+} */
+.header-container .nav-list {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.header-container .nav-list li {
+  margin: 0 15px;
+}
+.header-container .nav-list li a {
+  color: white;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+.header-container .nav-list li a:hover {
+  color: #ffd700;
+}
+.header-container .logout button {
+  padding: 6px 14px;
+  background-color: #ff4d4f; /* red */
+  border: none;
+  border-radius: 4px;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.header-container .logout button:hover {
+  background-color: #d9363e;
+}
+
+/* Responsive design for mobile devices */
+@media (max-width: 1024px) {
+  .header-container {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px 20px;
+  }
+
+  .nav-list {
+    flex-direction: column;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .nav-list li {
+    margin: 8px 0;
+  }
+
+  .logout {
+    margin-top: 10px;
+    width: 100%;
+  }
+
+  .logout button {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-container .logo h2 {
+    font-size: 1.2rem;
+  }
+
+  .nav-list li {
+    margin: 6px 0;
+  }
 }
