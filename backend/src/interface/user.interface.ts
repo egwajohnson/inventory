@@ -1,10 +1,9 @@
-import express from 'express';
-import { Types } from 'mongoose';
+import express from "express";
+import { Types } from "mongoose";
 
-export interface IAddUser{
-  // id?: Types.ObjectId; // Optional for creation, required for updates
+export interface IAddUser {
   title: string;
-  firstName: string;
+  firstName: ["Mr", "Mrs", "Ms", "Dr", "Prof"];
   lastName: string;
   username: string;
   email: string;
@@ -20,8 +19,8 @@ export interface IAddUser{
     postcode: number;
   };
   role: UserRole;
+  isLoggedIn: boolean;
+  refreshToken: string | null;
 }
 
 export type UserRole = "admin" | "customer" | "merchant";
-
-

@@ -10,11 +10,16 @@ import ForgotPassword from "./Layout/components/forgotPassword/forgotPassword";
 import RequestOtp from "./Layout/components/requestOtp/requestOtp";
 import Create from "./module/createProduct";
 import Products from "./module/getProduct/product";
+import Logout from "./logout/logout";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <Login />,
+  },
+  {
+    path: "/Logout",
+    element: <Logout />,
   },
   {
     path: "/ForgotPassword",

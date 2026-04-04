@@ -34,6 +34,11 @@ router.delete(
 );
 router.get("/user/:id", authMiddleware as any, AppController.findUserById);
 router.post("/login", AppController.loginUser as any);
+router.post(
+  "/user/logout",
+  authMiddleware as any,
+  AppController.logoutUser as any,
+);
 router.post("/user/request-otp", AppController.createOtp);
 router.post("/user/reset-password", AppController.passwordReset);
 

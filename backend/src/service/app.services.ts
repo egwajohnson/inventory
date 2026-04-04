@@ -303,6 +303,27 @@ export class AppService {
     };
   };
 
+  static logoutUser = async (userId: Types.ObjectId) => {
+    if (!Types.ObjectId.isValid(userId)) {
+      throw throwCustomError("User ID is required to logout", 400);
+    }
+    const user = await UserRepository.findUserById(userId);
+    if (!user) {
+      throw throwCustomError("User not found", 404);
+    }
+    user.isLoggedIn = false;
+    user.refreshToken = "";
+    await user.save();
+    const update = await UserRepository.logoutUser(userId);
+    if (!update) {
+      throw throwCustomError("Failed to logout user", 500);
+    }
+    return {
+      success: true,
+      message: "User logged out successfully",
+    };
+  };
+
   static deleteUserByEmail = async (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {

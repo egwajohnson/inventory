@@ -89,6 +89,18 @@ export class UserRepository {
     );
   };
 
+  static logoutUser = async (userId: Types.ObjectId) => {
+    if (!userId) {
+      throw throwCustomError("User ID is required to logout", 400);
+    }
+    const response = await UserModel.findByIdAndUpdate(
+      userId,
+      { $set: { isLoggedIn: false, refreshToken: null } },
+      { new: true },
+    );
+    return response;
+  };
+
   static findOtpByEmail = async (email: string) => {
     const response = await OtpModel.findOne({ email });
     return response;

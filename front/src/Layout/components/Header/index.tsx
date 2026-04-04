@@ -1,10 +1,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import logout from "../../../logout/logout";
 
 function Header() {
   return (
     <>
     <header className="header">
+      <h1>Inventory Management System</h1>
       <nav className="nav">
         <ul>
           <li><a href="/">Home</a></li>
@@ -16,7 +18,9 @@ function Header() {
           
         </ul>
       </nav>
-
+      <div className="logout">
+        <button onClick={logout}>Logout</button>
+      </div>
     </header>
     </>
   );

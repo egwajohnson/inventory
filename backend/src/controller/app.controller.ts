@@ -132,6 +132,16 @@ export class AppController {
     }
   };
 
+  static logoutUser = async (req: IRequest, res: Response) => {
+    try {
+      const userId = req.user.id;
+      const response = await AppService.logoutUser(userId);
+      res.status(200).json({ success: true, payload: response });
+    } catch (error: any) {
+      res.status(400).json({ success: false, payload: error.message });
+    }
+  };
+
   static createOtp = async (req: Request, res: Response) => {
     try {
       const { email } = req.body;
