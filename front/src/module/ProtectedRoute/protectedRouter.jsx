@@ -1,5 +1,5 @@
 import { Navigate, useLocation } from "react-router-dom";
-import jwtDecode from "jwt-decode";
+import * as jwtDecode from "jwt-decode";
 import { useState, useEffect, useMemo } from "react";
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -23,7 +23,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     if (!token) return { isValid: false, role: null };
 
     try {
-      const decoded = jwtDecode(token);
+      const decoded = jwtDecode.default(token);
 
       if (!decoded?.exp || !decoded?.role) {
         throw new Error("Malformed token");
