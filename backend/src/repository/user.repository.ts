@@ -66,7 +66,9 @@ export class UserRepository {
       throw new Error("Email and password are required");
     }
 
-    const response = await UserModel.findOne({ email }).select("+password");
+    const response = await UserModel.findOne({ email }).select(
+      "+password +position",
+    );
 
     if (!response) {
       throw new Error("User not found");

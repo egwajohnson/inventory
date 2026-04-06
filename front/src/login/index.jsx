@@ -30,7 +30,6 @@ export default function Login() {
         throw new Error(data?.message || "Login failed");
       }
 
-      //Store token or user data if returned
       localStorage.setItem("token", data.payload.token);
 
       console.log("Login successful, token stored:", data.payload.token);
@@ -61,7 +60,7 @@ export default function Login() {
             <br />
             <input
               type={showPassword ? "text" : "password"}
-              id="passInp"
+              className="passInp"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -69,7 +68,7 @@ export default function Login() {
             />
             <input
               type="checkbox"
-              id="showPassword"
+              className="showPassword"
               onChange={() => setShowPassword(!showPassword)}
             />
             <br />

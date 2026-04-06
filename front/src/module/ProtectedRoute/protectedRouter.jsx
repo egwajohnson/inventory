@@ -1,5 +1,5 @@
 import { Navigate, useLocation } from "react-router-dom";
-import * as jwtDecode from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 import { useState, useEffect, useMemo } from "react";
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -7,12 +7,11 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const [token, setToken] = useState(() => localStorage.getItem("token"));
 
   useEffect(() => {
-    const handleStorage = () => {
-      setToken(localStorage.getItem("token"));
-    };
+    const handleStorage = () => setToken(localStorage.getItem("token"));
 
     window.addEventListener("storage", handleStorage);
     window.addEventListener("authChange", handleStorage);
+
     return () => {
       window.removeEventListener("storage", handleStorage);
       window.removeEventListener("authChange", handleStorage);
@@ -20,24 +19,28 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   }, []);
 
   const auth = useMemo(() => {
-    if (!token) return { isValid: false, role: null };
+    if (!token) return { isValid: false, position: null };
 
     try {
-      const decoded = jwtDecode.default(token);
+      const decoded = jwtDecode(token);
+      console.log("Decoded token:", decoded);
 
-      if (!decoded?.exp || !decoded?.role) {
+      if (!decoded?.exp) {
         throw new Error("Malformed token");
       }
 
       const isValid = decoded.exp * 1000 > Date.now();
+      const position = Array.isArray(decoded.position)
+        ? decoded.position[0]
+        : decoded.position;
 
       return {
         isValid,
-        role: decoded.role,
+        position,
       };
     } catch (error) {
       console.error("Invalid token:", error);
-      return { isValid: false, role: null };
+      return { isValid: false, position: null };
     }
   }, [token]);
 
@@ -48,13 +51,16 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     }
   }, [auth.isValid, token]);
 
-  if (!auth.isValid) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+  const currentPath = location.pathname;
+
+  if (!auth.isValid && currentPath !== "/") {
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
 
-  if (allowedRoles.length && !allowedRoles.includes(auth.role)) {
+  if (allowedRoles.length && !allowedRoles.includes(auth.position)) {
     return <Navigate to="/unauthorized" replace />;
   }
+
   return children;
 };
 

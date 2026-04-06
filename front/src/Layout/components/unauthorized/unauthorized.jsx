@@ -1,6 +1,7 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
-function unauthorized() {
+function Unauthorized() {
   return (
     <>
       <div style={{ textAlign: "center", marginTop: "50px" }}>
@@ -12,4 +13,4 @@ function unauthorized() {
   );
 }
 
-export default unauthorized;
+export default Unauthorized;

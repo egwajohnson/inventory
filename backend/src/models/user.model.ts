@@ -24,10 +24,10 @@ const userSchema = new mongoose.Schema({
     state: { type: String },
     postcode: { type: Number },
   },
-  role: [
+  position: [
     {
       type: String,
-      enum: ["admin","manager","customer", "merchant"],
+      enum: ["admin", "manager", "customer", "merchant"],
       default: "customer",
       required: true,
     },

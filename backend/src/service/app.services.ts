@@ -256,6 +256,7 @@ export class AppService {
       ipAddress,
       userAgent,
     );
+    console.log("User found for login:", user.position);
 
     if (!user) {
       throw throwCustomError("Invalid credentials", 401);
@@ -271,7 +272,10 @@ export class AppService {
     }
     const payload = {
       userId: user._id,
+      position: user.position,
     };
+
+    console.log("Payload for JWT:", payload);
 
     let jwttoken = jwt.sign(payload, JWT_SECRET, {
       expiresIn: JWT_EXP,
