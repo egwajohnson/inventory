@@ -12,6 +12,7 @@ import Create from "./module/createProduct";
 import Products from "./module/getProduct/product";
 import Logout from "./logout/logout";
 import ProtectedRoute from "./module/ProtectedRoute/protectedRouter";
+import unauthorized from "./Layout/components/unauthorized/unauthorized";
 
 const router = createBrowserRouter([
   {
@@ -36,7 +37,7 @@ const router = createBrowserRouter([
       {
         path: "/dashboard",
         element: (
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["admin", "user"]}>
             <Dashboard />
           </ProtectedRoute>
         ),
@@ -66,7 +67,11 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/products",
-        element: <Products />,
+        element: (
+          <ProtectedRoute allowedRoles={["admin", "manager"]}>
+            <Products />
+          </ProtectedRoute>
+        ),
       },
     ],
   },
@@ -81,6 +86,10 @@ const router = createBrowserRouter([
   {
     path: "/register",
     element: <Register />,
+  },
+  {
+    path: "/unauthorized",
+    element: <unauthorized />,
   },
   {
     path: "*",
