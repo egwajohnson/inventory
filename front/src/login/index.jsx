@@ -75,9 +75,14 @@ export default function Login() {
             <br />
             <button type="submit">Login</button>
           </form>
-          <button className="forget">
-            <a href="/RequestOtp">Reset Password?</a>
-          </button>
+          <div className="forget">
+            {/* <button>
+              <a href="/signup">Sign Up</a>
+            </button> */}
+            <button>
+              <a href="/RequestOtp">Reset Password?</a>
+            </button>
+          </div>
         </div>
       </div>
     </>

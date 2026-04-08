@@ -30,13 +30,15 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
       }
 
       const isValid = decoded.exp * 1000 > Date.now();
-      const position = Array.isArray(decoded.position)
-        ? decoded.position[0]
-        : decoded.position;
+      const positions = Array.isArray(decoded.position)
+        ? decoded.position
+        : decoded.position
+          ? [decoded.position]
+          : [];
 
       return {
         isValid,
-        position,
+        positions,
       };
     } catch (error) {
       console.error("Invalid token:", error);
@@ -57,7 +59,10 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     return <Navigate to="/" state={{ from: location }} replace />;
   }
 
-  if (allowedRoles.length && !allowedRoles.includes(auth.position)) {
+  if (
+    allowedRoles.length &&
+    !auth.positions.some((role) => allowedRoles.includes(role))
+  ) {
     return <Navigate to="/unauthorized" replace />;
   }
 
