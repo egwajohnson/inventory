@@ -412,6 +412,22 @@ export class AppController {
     }
   };
 
+  static getAllCarts = async (req: IRequest, res: Response) => {
+    try {
+     const user = req.user;
+      const response = await AppService.getAllCarts(user);
+      res.status(200).json({
+        success: true,
+        carts: response,
+      });
+    } catch (error: any) {
+      res.status(error.statusCode || 500).json({
+        success: false,
+        payload: error.message || "Internal server error",
+      });
+    }
+  };
+
   static createCoupon = async (req: IRequest, res: Response) => {
     try {
       const userId = req.user.id;

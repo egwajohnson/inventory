@@ -102,6 +102,11 @@ router.delete(
   authMiddleware as any,
   AppController.clearCart as any,
 );
+router.get(
+  "/carts/all",
+  authMiddleware as any,
+  AppController.getAllCarts as any,
+);
 
 //coupon routes
 router.post(

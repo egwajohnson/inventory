@@ -13,6 +13,7 @@ import Products from "./module/getProduct/product";
 import Logout from "./logout/logout";
 import ProtectedRoute from "./module/ProtectedRoute/protectedRouter";
 import Unauthorized from "./Layout/components/unauthorized/unauthorized";
+import Booking from "./module/bookings/booking";
 
 const router = createBrowserRouter([
   {
@@ -30,6 +31,14 @@ const router = createBrowserRouter([
   {
     path: "/RequestOtp",
     element: <RequestOtp />,
+  },
+  {
+    path: "/Booking",
+    element: (
+      <ProtectedRoute allowedRoles={["Admin", "user"]}>
+        <Booking />
+      </ProtectedRoute>
+    ),
   },
   {
     element: <AppLayout />,

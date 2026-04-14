@@ -1,13 +1,13 @@
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { characters } from "../config/system.variable";
-import { UserRole } from "../interface/user.interface";
 import { sendMail } from "../util/nodemailer";
 import { otpTemplate } from "../util/otp-template";
 import { accountTemplate } from "../util/user-template";
 import { loginTemplate } from "../util/login-templete";
 import { UserRepository } from "../repository/user.repository";
 import { ProductRepository } from "../repository/product.repository";
+import { IRequest } from "../middleware/auth.middleware";
 
 import { AddToCartDTO, Cart, product } from "../interface/product.interface";
 import { ProductModel } from "../models/product.model";
@@ -119,6 +119,7 @@ export class AppService {
     const payload = {
       ...user,
       password: hashedPassword,
+      position: user.position,
     };
 
     const response = await UserRepository.createUser(payload);
@@ -866,27 +867,27 @@ export class AppService {
     return del;
   }
 
-  //   static async getCarts(userId: string) {
-  //     const cart = await CartRepository.findByUserId(userId);
-
-  //     if (!cart) {
-  //       return { items: [], totalPrice: 0 };
-  //     }
-
-  //     return cart;
-  //   }
-  // }
+  static async getAllCarts(user: IRequest["user"]) {
+    if (!user?.position?.includes("Admin")) {
+      throw throwCustomError("Only admin users can fetch all carts.", 403);
+    }
+    const carts = await ProductRepository.getAllCarts();
+    if (carts.length === 0) {
+      throw throwCustomError("No carts found", 404);
+    }
+    return carts;
+  }
 
   // coupon section service
   static createCoupon = async (userId: Types.ObjectId, data: ICoupon) => {
     if (!userId) {
       throw throwCustomError("User ID is required to create a coupon.", 400);
     }
-    const user = (await UserModel.findById(userId)) as { role: UserRole };
+    const user = await UserModel.findById(userId);
     if (!user) {
       throw throwCustomError("User not found.", 404);
     }
-    if (user.role !== "admin") {
+    if (user.position && !user.position.includes("Admin")) {
       throw throwCustomError("Only admin users can create coupons.", 403);
     }
 

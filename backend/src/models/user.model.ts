@@ -27,8 +27,8 @@ const userSchema = new mongoose.Schema({
   position: [
     {
       type: String,
-      enum: ["admin", "manager", "customer", "merchant"],
-      default: "customer",
+      enum: ["Admin", "Manager", "Customer", "Merchant"],
+      default: "Customer",
       required: true,
     },
   ],

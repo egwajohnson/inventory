@@ -34,6 +34,16 @@ function Dashboard() {
                 <i className="fas fa-plus me-2"></i> Create
               </NavLink>
             </li>
+            <li className="nav-item">
+              <NavLink
+                to="/booking"
+                className={({ isActive }) =>
+                  `nav-link ${isActive ? "active fw-bold" : ""}`
+                }
+              >
+                <i className="fas fa-tachometer-alt me-2"></i> BOOKING
+              </NavLink>
+            </li>
 
             <li className="nav-item">
               <NavLink

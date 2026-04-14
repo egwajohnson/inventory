@@ -284,6 +284,17 @@ export class ProductRepository {
     return cart.save();
   }
 
+  static async getAllCarts() {
+    const carts = await CartModel.find()
+      .populate({
+        path: "items.productId",
+        select: "productName productPrice stock status",
+      })
+      .lean()
+      .select("-__v");
+    return carts;
+  }
+
   static async deleteCartItem(userId: Types.ObjectId, productId: string) {
     const cart = await CartModel.findOne({ userId });
 

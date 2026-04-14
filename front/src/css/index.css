@@ -44,6 +44,15 @@ body {
   background-position: center;
   font-size: Arial, sans-serif;
 }
+.booking {
+  padding-top: clamp(30px, 5%, 50px);
+  flex-direction: column;
+  width: clamp(100%, 5%, 100%);
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #535bf2;
+}
 .contain .login {
   width: 300px;
   max-width: 90%;

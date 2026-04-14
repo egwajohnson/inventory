@@ -1,14 +1,16 @@
 import { Response, Request, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import {JWT_SECRET} from "../config/system.variable";
-import {UserModel} from "../models/user.model"
+import { JWT_SECRET } from "../config/system.variable";
+import { UserModel } from "../models/user.model";
 import { Types } from "mongoose";
+import { UserRole } from "../interface/user.interface";
 
 export interface IRequest extends Request {
   user: {
     id: Types.ObjectId;
     firstName?: string | null;
     email?: string | null;
+    position: UserRole[];
     kycStatus?: string;
   };
 }
@@ -17,7 +19,7 @@ export const invalidTokens: string[] = [];
 export const authMiddleware = (
   req: IRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): any => {
   const authHeader = req.headers.authorization;
 
@@ -46,6 +48,7 @@ export const authMiddleware = (
       firstName: user?.firstName,
       email: user?.email,
       id: user._id,
+      position: user.position as UserRole[],
       //kycStatus: user.kycStatus,
     };
     next();

@@ -18,9 +18,14 @@ export interface IAddUser {
     state: string;
     postcode: number;
   };
-  role: UserRole;
+  position: UserRole;
   isLoggedIn: boolean;
   refreshToken: string | null;
 }
 
-export type UserRole = "admin" | "customer" | "merchant";
+export type UserRole = "Admin" | "Manager" | "Customer" | "Merchant";
+
+export interface ILoginUser {
+  email: string;
+  password: string;
+}
