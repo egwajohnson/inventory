@@ -23,7 +23,6 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
 
     try {
       const decoded = jwtDecode(token);
-      console.log("Decoded token:", decoded);
 
       if (!decoded?.exp) {
         throw new Error("Malformed token");

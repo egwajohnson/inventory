@@ -18,6 +18,11 @@ body {
   height: 100vh;
   background-color: #535bf2;
 }
+.card-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
 .dashboard h1 {
   align-items: center;

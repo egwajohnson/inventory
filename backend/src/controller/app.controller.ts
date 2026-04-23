@@ -134,6 +134,13 @@ export class AppController {
 
   static logoutUser = async (req: IRequest, res: Response) => {
     try {
+      if (!req.user) {
+        res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+        return;
+      }
       const userId = req.user.id;
       const response = await AppService.logoutUser(userId);
       res.status(200).json({ success: true, payload: response });
@@ -168,11 +175,15 @@ export class AppController {
 
   // product section
 
-  static createProduct = async (
-    req: IRequest,
-    res: Response,
-  ): Promise<Response> => {
+  static createProduct = async (req: IRequest, res: Response): Promise<any> => {
     try {
+      if (!req.user) {
+        res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+        return;
+      }
       const userId = req.user.id;
       const product = req.body;
 
@@ -186,16 +197,16 @@ export class AppController {
       product.image = imageFilename;
 
       const response = await AppService.createProduct(product, userId);
-      return res.status(201).json({ success: true, payload: response });
+      res.status(201).json({ success: true, payload: response });
     } catch (error: any) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: error.message || "Something went wrong",
       });
     }
   };
 
-  static getProducts = async (req: Request, res: Response) => {
+  static getProducts = async (req: Request, res: Response): Promise<void> => {
     try {
       const { page, limit } = req.query as {
         page: string;
@@ -208,29 +219,48 @@ export class AppController {
     }
   };
 
-  static deleteProduct = async (req: Request, res: Response) => {
+  static deleteProduct = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id } = req.body;
+      const { id } = req.params;
 
-      const response = await AppService.deleteProduct(id as any);
-      res.status(201).json(response);
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          message: "Product ID is required",
+        });
+      }
+
+      const response = await AppService.deleteProduct(id);
+      res.status(200).json({
+        success: true,
+        payload: response,
+      });
     } catch (error: any) {
-      res.status(404).json({ success: false, payload: error.message });
+      res.status(error.statusCode || 500).json({
+        success: false,
+        message: error.message || "Internal server error",
+      });
     }
   };
 
-  static findProductByName = async (req: Request, res: Response) => {
+  static findProductByName = async (
+    req: Request,
+    res: Response,
+  ): Promise<void> => {
     try {
-      const { productName } = req.body;
+      const { productName } = req.params;
 
       const response = await AppService.findProductByName(productName);
-      res.status(201).json(response);
+      res.status(200).json(response);
     } catch (error: any) {
-      res.status(404).json({ success: false, payload: error.message });
+      res.status(error.statusCode || 500).json({
+        success: false,
+        message: error.message,
+      });
     }
   };
 
-  static updateProduct = async (req: Request, res: Response) => {
+  static updateProduct = async (req: Request, res: Response): Promise<void> => {
     try {
       const { productName, productPrice } = req.body;
 
@@ -238,13 +268,16 @@ export class AppController {
         productName,
         productPrice,
       );
-      res.status(200).json(response);
+      res.status(200).json({ success: true, payload: response });
     } catch (error: any) {
       res.status(404).json({ success: false, payload: error.message });
     }
   };
 
-  static updateProductQuantity = async (req: Request, res: Response) => {
+  static updateProductQuantity = async (
+    req: Request,
+    res: Response,
+  ): Promise<void> => {
     try {
       const { productName, quantity } = req.body;
 
@@ -252,13 +285,13 @@ export class AppController {
         productName,
         quantity,
       );
-      res.status(200).json(response);
+      res.status(200).json({ success: true, payload: response });
     } catch (error: any) {
       res.status(404).json({ success: false, payload: error.message });
     }
   };
 
-  static saleProduct = async (req: IRequest, res: Response) => {
+  static saleProduct = async (req: IRequest, res: Response): Promise<void> => {
     try {
       console.log("FULL BODY:", req.body);
       const userId = req.user?.id;
@@ -284,8 +317,15 @@ export class AppController {
 
   //cart section controller
 
-  static createCart = async (req: IRequest, res: Response) => {
+  static createCart = async (req: IRequest, res: Response): Promise<void> => {
     try {
+      if (!req.user) {
+        res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+        return;
+      }
       const userId = req.user.id;
       const response = await AppService.createCart(userId);
       res.status(201).json(response);
@@ -294,8 +334,15 @@ export class AppController {
     }
   };
 
-  static addToCart = async (req: IRequest, res: Response) => {
+  static addToCart = async (req: IRequest, res: Response): Promise<void> => {
     try {
+      if (!req.user) {
+        res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+        return;
+      }
       const userId = req.user.id;
       const data = req.body;
 
@@ -306,10 +353,14 @@ export class AppController {
     }
   };
 
-  static getCart = async (req: IRequest, res: Response) => {
+  static getCart = async (req: IRequest, res: Response): Promise<void> => {
     try {
       if (!req.user) {
-        throw throwCustomError("Unauthorized", 401);
+        res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+        return;
       }
       const userId = req.user.id;
       const response = await AppService.getCart(userId);
@@ -321,8 +372,15 @@ export class AppController {
     }
   };
 
-  static updateCart = async (req: IRequest, res: Response) => {
+  static updateCart = async (req: IRequest, res: Response): Promise<void> => {
     try {
+      if (!req.user) {
+        res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+        return;
+      }
       const userId = req.user.id;
       const { productId, quantity } = req.body;
 
@@ -342,19 +400,29 @@ export class AppController {
       });
     }
   };
-  static updateCartItem = async (req: IRequest, res: Response) => {
+  static updateCartItem = async (
+    req: IRequest,
+    res: Response,
+  ): Promise<void> => {
     try {
+      if (!req.user) {
+        res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+        return;
+      }
       const userId = req.user.id;
       const { productId, quantity } = req.body;
       if (!userId) {
-        return res.status(401).json({ message: "Unauthorized" });
+        res.status(401).json({ message: "Unauthorized" });
       }
       if (!productId) {
-        return res.status(400).json({ message: "Product ID is required" });
+        res.status(400).json({ message: "Product ID is required" });
       }
 
       if (quantity === undefined) {
-        return res.status(400).json({ message: "Quantity is required" });
+        res.status(400).json({ message: "Quantity is required" });
       }
       const response = await AppService.updateCartItem(
         userId,
@@ -369,8 +437,15 @@ export class AppController {
     }
   };
 
-  static clearCart = async (req: IRequest, res: Response) => {
+  static clearCart = async (req: IRequest, res: Response): Promise<void> => {
     try {
+      if (!req.user) {
+        res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+        return;
+      }
       const userId = req.user.id;
       const response = await AppService.clearCart(userId);
       res.status(200).json(response);
@@ -381,8 +456,15 @@ export class AppController {
     }
   };
 
-  static removeItem = async (req: IRequest, res: Response) => {
+  static removeItem = async (req: IRequest, res: Response): Promise<void> => {
     try {
+      if (!req.user) {
+        res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+        return;
+      }
       const userId = req.user.id;
       const { productId, quantity } = req.body;
       const removeItem = await AppService.removeItem(
@@ -396,8 +478,18 @@ export class AppController {
     }
   };
 
-  static deleteCartItem = async (req: IRequest, res: Response) => {
+  static deleteCartItem = async (
+    req: IRequest,
+    res: Response,
+  ): Promise<void> => {
     try {
+      if (!req.user) {
+        res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+        return;
+      }
       const userId = req.user.id;
       const { productId } = req.params;
       const cart = await AppService.deleteCartItem(userId, productId);
@@ -412,9 +504,16 @@ export class AppController {
     }
   };
 
-  static getAllCarts = async (req: IRequest, res: Response) => {
+  static getAllCarts = async (req: IRequest, res: Response): Promise<void> => {
     try {
-     const user = req.user;
+      if (!req.user) {
+        res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+        return;
+      }
+      const user = req.user;
       const response = await AppService.getAllCarts(user);
       res.status(200).json({
         success: true,
@@ -428,8 +527,15 @@ export class AppController {
     }
   };
 
-  static createCoupon = async (req: IRequest, res: Response) => {
+  static createCoupon = async (req: IRequest, res: Response): Promise<void> => {
     try {
+      if (!req.user) {
+        res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+        return;
+      }
       const userId = req.user.id;
       const data = req.body;
       const response = await AppService.createCoupon(userId, data);
@@ -439,8 +545,18 @@ export class AppController {
     }
   };
 
-  static applyCouponToCart = async (req: IRequest, res: Response) => {
+  static applyCouponToCart = async (
+    req: IRequest,
+    res: Response,
+  ): Promise<void> => {
     try {
+      if (!req.user) {
+        res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+        return;
+      }
       const userId = req.user.id;
       const { couponCode } = req.body;
       const response = await AppService.applyCouponToCart(userId, couponCode);
@@ -449,7 +565,7 @@ export class AppController {
       res.status(404).json({ success: false, payload: error.message });
     }
   };
-  static getCoupons = async (req: IRequest, res: Response) => {
+  static getCoupons = async (req: IRequest, res: Response): Promise<void> => {
     try {
       const response = await AppService.getCoupons();
       res.status(200).json(response);

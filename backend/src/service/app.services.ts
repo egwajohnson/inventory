@@ -492,17 +492,20 @@ export class AppService {
     return response;
   };
 
-  static deleteProduct = async (id: Types.ObjectId) => {
+  static deleteProduct = async (id: string) => {
     if (!id) {
       throw throwCustomError("Product ID is required", 400);
     }
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw throwCustomError("Invalid product ID", 400);
+    }
 
-    const product = await ProductRepository.deleteProduct(id);
+    const product = await ProductRepository.deleteProduct(id as any);
 
     if (!product) {
       throw throwCustomError("product does not exist", 404);
     }
-    return "product deleted successful";
+    return { message: "Product deleted successfully" };
   };
 
   static findProductByName = async (productName: string) => {
@@ -510,11 +513,14 @@ export class AppService {
       throw throwCustomError("product name is requred", 400);
     }
 
-    const product = ProductRepository.findByName(productName);
+    const product = await ProductRepository.findByName(productName);
     if (!product) {
       throw throwCustomError("product does not exist", 404);
     }
-    return product;
+    return {
+      success: true,
+      payload: product,
+    };
   };
 
   static updateProduct = async (productName: string, productPrice: string) => {

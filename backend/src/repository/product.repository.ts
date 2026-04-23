@@ -44,22 +44,31 @@ export class ProductRepository {
   }
 
   static async findBySlug(slug: string) {
-    const response = await ProductModel.findOne({ slug });
+    const response = await ProductModel.findOne({ slug }).select("-__v");
     return response;
   }
 
   static async findByName(productName: string): Promise<any> {
-    const response = await ProductModel.findOne({ productName });
-    return response;
+    const escapeRegex = (text: string) =>
+      text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    return await ProductModel.findOne({
+      productName: {
+        $regex: `^${escapeRegex(productName.trim())}$`,
+        $options: "i",
+      },
+    }).select("-__v");
   }
 
   static async getprice(price: number) {
-    const response = await ProductModel.findOne({ productPrice: price });
+    const response = await ProductModel.findOne({ productPrice: price }).select(
+      "-__v",
+    );
     return response;
   }
 
-  static async deleteProduct(id: Types.ObjectId) {
-    const response = await ProductModel.findByIdAndDelete({ _id: id });
+  static async deleteProduct(id: string) {
+    const response = await ProductModel.findByIdAndDelete(id).select("-__v");
     return response;
   }
 
