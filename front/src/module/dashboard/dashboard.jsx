@@ -4,7 +4,8 @@ import useProducts from "../../hooks/useProducts";
 import useSearch from "../../hooks/useSearch";
 
 function Dashboard() {
-  const { products, loading, error } = useProducts();
+  const { products, loading, error, page, meta, nextPage, prevPage } =
+    useProducts();
 
   const [query, setQuery] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -30,7 +31,7 @@ function Dashboard() {
   return (
     <div className="container-fluid mt-4 dashboard">
       {/* 🔍 Search */}
-      <div style={{ display: "flex", gap: "10px", marginBottom: "15px" }}>
+      <div className="search">
         <input
           type="text"
           placeholder="Search product..."
@@ -42,10 +43,7 @@ function Dashboard() {
         <button onClick={handleSearch}>Search</button>
 
         {isSearching && (
-          <button
-            onClick={clearSearch}
-            style={{ background: "red", color: "white" }}
-          >
+          <button onClick={clearSearch} className="clear">
             Clear
           </button>
         )}
@@ -55,7 +53,7 @@ function Dashboard() {
         {/* Sidebar */}
         <nav className="col-md-3 col-lg-2 d-md-block bg-light sidebar p-3 min-vh-100">
           <div className="text-center mb-4">
-            <span className="navbar-brand fw-bold">My App</span>
+            <span className="navbar-brand fw-bold">MENU</span>
           </div>
 
           <ul className="nav flex-column">
@@ -85,8 +83,8 @@ function Dashboard() {
         </nav>
 
         {/* Main Content */}
-        <main className="col-md-9 col-lg-10 p-4">
-          <h1>Dashboard</h1>
+        <main className="col-md-9 col-lg-10 p-4 main">
+          <h1>Product List</h1>
 
           {/* 🔎 SEARCH MODE */}
           {isSearching ? (
@@ -99,6 +97,7 @@ function Dashboard() {
                   <div className="card-body">
                     <h5>{searchedProduct.productName}</h5>
                     <h6>{searchedProduct.productPrice}</h6>
+                    <h6>{searchedProduct.quantity}</h6>
                     <p>{searchedProduct.description}</p>
                   </div>
                 </div>
@@ -107,22 +106,46 @@ function Dashboard() {
               )}
             </>
           ) : (
-            /* 📦 DEFAULT PRODUCT LIST */
+            /* 📦 SINGLE PRODUCT VIEW */
             <>
-              {loading && <p>Loading products...</p>}
-              {error && <p className="text-danger">{error}</p>}
-
-              {!loading && products?.length > 0
-                ? products.map((item) => (
-                    <div key={item._id} className="card mb-3">
+              {loading ? (
+                <p>Loading products...</p>
+              ) : error ? (
+                <p className="text-danger">{error}</p>
+              ) : !Array.isArray(products) ? (
+                <p>Invalid data format</p>
+              ) : products.length === 0 ? (
+                <p>No products available.</p>
+              ) : (
+                <>
+                  {/* GRID / LIST */}
+                  {products.map((item) => (
+                    <div key={item._id} className="card mb-3 product-card">
                       <div className="card-body">
-                        <h5>{item?.productName || "No Name"}</h5>
-                        <h6>{item?.productPrice}</h6>
-                        <p>{item?.description || "No description"}</p>
+                        <h5>{item.productName}</h5>
+                        <h6>{item.productPrice}</h6>
+                        <h6>{item.quantity}</h6>
+                        <p>{item.description}</p>
                       </div>
                     </div>
-                  ))
-                : !loading && <p>No products available.</p>}
+                  ))}
+
+                  {/* PAGINATION */}
+                  <div className="d-flex gap-2 mt-3 align-items-center">
+                    <button onClick={prevPage} disabled={page === 1}>
+                      Previous
+                    </button>
+
+                    <span>
+                      Page {page} of {meta?.pages || 1}
+                    </span>
+
+                    <button onClick={nextPage} disabled={page === meta?.pages}>
+                      Next
+                    </button>
+                  </div>
+                </>
+              )}
             </>
           )}
 
