@@ -90,12 +90,12 @@ function Products() {
 
   return (
     <div className="products-wrapper">
+      <div className="floating-cart">
+        <Link to="/cart" className="link">
+          🛒 {cartCount}
+        </Link>
+      </div>
       <div className="carts-container">
-        <div className="floating-cart">
-          <Link to="/cart" className="link">
-            🛒 {cartCount}
-          </Link>
-        </div>
         {currentProducts.map((product) => (
           <div className="product-card" key={product._id}>
             <img
