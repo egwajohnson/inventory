@@ -296,6 +296,12 @@ select:focus {
   background-position: center;
 }
 
+.cart-container {
+  background-image: url("../assets/download.jpeg");
+  background-size: cover;
+  background-position: center;
+}
+
 .container .reg {
   width: 100%;
   max-width: 500px;
