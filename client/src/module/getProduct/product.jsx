@@ -110,7 +110,7 @@ function Products() {
 
             <h3>{product.productName}</h3>
 
-            <p className="price">₦{product.productPrice}</p>
+            <p className="price">Price: ₦{product.productPrice}</p>
 
             <p>Category: {product.category}</p>
 
