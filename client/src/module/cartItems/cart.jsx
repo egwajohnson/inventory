@@ -5,6 +5,7 @@ import updateCart from "../updateCart/updateCart";
 import handlePayment from "../checkOut";
 
 function Cart() {
+  const [cartData, setCartData] = useState(null);
   const [cart, setCart] = useState([]);
   const token = localStorage.getItem("token");
 
@@ -17,6 +18,7 @@ function Cart() {
       const res = await axios.get("http://localhost:5000/api/v1/cart", {
         headers,
       });
+      setCartData(res.data);
       setCart(res.data.items || []);
     } catch (error) {
       console.error(error);
@@ -61,78 +63,90 @@ function Cart() {
   }, 0);
 
   return (
-    <div className="cart-container py-5">
-      <h2 className="mb-4 text-center fw-bold">🛒 Your Cart</h2>
-      <h2>cartId: {cart[0]?.cartId || "N/A"}</h2>
+    <>
+      <div className="cart-container">
+        <div className="cent">
+          <h2 className="mb-4 text-center fw-bold">🛒 Your Cart</h2>
+          <div className="text-center mb-4">
+            <span className="badge bg-dark">
+              Cart ID: {cartData?._id || "N/A"}
+            </span>
+          </div>
 
-      {cart.length === 0 ? (
-        <div className="alert alert-info text-center">No items in cart</div>
-      ) : (
-        <div className="row g-4">
-          {cart.map((item) => (
-            <div className="col-12" key={item._id}>
-              <div className="card shadow-sm border-0">
-                <div className="card-body d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                  {/* Product Info */}
-                  <div>
-                    <small className="text-muted">
-                      ID: {item.productId?._id || "N/A"}
-                    </small>
-                    <h5 className="mb-1">
-                      {item.productId?.productName || "Unknown Product"}
-                    </h5>
+          {cart.length === 0 ? (
+            <div className="alert alert-info text-center">No items in cart</div>
+          ) : (
+            <div className=" row g-4">
+              {cart.map((item) => (
+                <div className="col-12" key={item._id}>
+                  <div className="card shadow-sm border-0">
+                    <div className="card-body d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                      {/* Product Info */}
 
-                    <p className="mb-0 mt-2">Price: ₦{item.productPrice}</p>
+                      <small className="text-muted">
+                        ID: {item.productId?._id || "N/A"}
+                      </small>
+                      <h5 className="mb-1">
+                        {item.productId?.productName || "Unknown Product"}
+                      </h5>
+
+                      <p className="mb-0 mt-2">Price: ₦{item.productPrice}</p>
+
+                      {/* Quantity Controls */}
+                      <div className="d-flex align-items-center gap-2">
+                        <button
+                          className="btn btn-outline-secondary btn-sm"
+                          onClick={() =>
+                            handleUpdateCart(item.productId._id, -1)
+                          }
+                          disabled={item.quantity <= 1}
+                        >
+                          -
+                        </button>
+
+                        <span className="fw-bold px-2">{item.quantity}</span>
+
+                        <button
+                          className="btn btn-outline-secondary btn-sm"
+                          onClick={() =>
+                            handleUpdateCart(item.productId._id, 1)
+                          }
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      {/* Delete */}
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => deleteItem(item.productId._id)}
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
                   </div>
-
-                  {/* Quantity Controls */}
-                  <div className="d-flex align-items-center gap-2">
-                    <button
-                      className="btn btn-outline-secondary btn-sm"
-                      onClick={() => handleUpdateCart(item.productId._id, -1)}
-                      disabled={item.quantity <= 1}
-                    >
-                      -
-                    </button>
-
-                    <span className="fw-bold px-2">{item.quantity}</span>
-
-                    <button
-                      className="btn btn-outline-secondary btn-sm"
-                      onClick={() => handleUpdateCart(item.productId._id, 1)}
-                    >
-                      +
-                    </button>
-                  </div>
-
-                  {/* Delete */}
-                  <button
-                    className="btn btn-danger btn-sm"
-                    onClick={() => deleteItem(item.productId._id)}
-                  >
-                    <FaTrash />
-                  </button>
                 </div>
-              </div>
+              ))}
             </div>
-          ))}
+          )}
+
+          {/* TOTAL + PAYMENT */}
+          <div className="mt-4 p-3 bg-light rounded shadow-sm d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <h4 className="mb-0">
+              Total:{" "}
+              <span className="text-success">₦{total.toLocaleString()}</span>
+            </h4>
+
+            <button
+              className="btn btn-primary px-4"
+              onClick={() => handlePayment(total)}
+            >
+              Pay Now
+            </button>
+          </div>
         </div>
-      )}
-
-      {/* TOTAL + PAYMENT */}
-      <div className="mt-4 p-3 bg-light rounded shadow-sm d-flex justify-content-between align-items-center flex-wrap gap-3">
-        <h4 className="mb-0">
-          Total: <span className="text-success">₦{total.toLocaleString()}</span>
-        </h4>
-
-        <button
-          className="btn btn-primary px-4"
-          onClick={() => handlePayment(total)}
-        >
-          Pay Now
-        </button>
       </div>
-    </div>
+    </>
   );
 }
 

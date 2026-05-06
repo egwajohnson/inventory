@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { NavLink, Outlet } from "react-router-dom";
 import Payment from "../../Layout/payment/payment";
+import handlePayment from "../checkOut";
 import { jsPDF } from "jspdf";
 
 function Booking() {
@@ -166,7 +167,7 @@ function Booking() {
 
         <ul className="nav flex-column gap-2">
           {[
-            { to: "/", label: "Home", icon: "fa-home" },
+            { to: "/dashboard", label: "Home", icon: "fa-home" },
             { to: "/create", label: "Create", icon: "fa-plus" },
             {
               to: "/booking",
@@ -360,7 +361,7 @@ function Booking() {
                     <div className="d-flex gap-2">
                       <button
                         className="btn btn-success"
-                        onClick={() => handlePay(cart._id)}
+                        onClick={() => handlePayment(cart._id)}
                         disabled={cart.status === "paid"}
                       >
                         {cart.status === "paid" ? "Already Paid" : "Pay Now"}
