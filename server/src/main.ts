@@ -5,6 +5,7 @@ import { PORT } from "./config/system.variable";
 import cors from "cors";
 import path from "path";
 import router from "./routes/index";
+import webhooks from "./util/webHooks";
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(logger);
 
 app.use("/api/v1", router);
+app.use("/api/v1/webhooks", webhooks);
 
 mongoConnection();
 app.listen(PORT, () => {
