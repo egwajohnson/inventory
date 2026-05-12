@@ -14,6 +14,8 @@ import Logout from "./logout/logout";
 import ProtectedRoute from "./module/ProtectedRoute/protectedRouter";
 import Unauthorized from "./Layout/components/unauthorized/unauthorized";
 import Booking from "./module/bookings/booking";
+import CreateCoupon from "./module/coupons/createCoupon";
+import Coupons from "./module/coupons/getcoupons";
 
 const router = createBrowserRouter([
   {
@@ -27,6 +29,14 @@ const router = createBrowserRouter([
   {
     path: "/ForgotPassword",
     element: <ForgotPassword />,
+  },
+  {
+    path: "/Coupon",
+    element: <Coupons />,
+  },
+  {
+    path: "/CreateCoupon",
+    element: <CreateCoupon />,
   },
   {
     path: "/RequestOtp",

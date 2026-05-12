@@ -3,6 +3,8 @@ import axios from "axios";
 import { NavLink, Outlet } from "react-router-dom";
 import Payment from "../../Layout/payment/payment";
 import handlePayment from "../checkOut";
+import createCoupon from "../coupons/createCoupon";
+import Coupons from "../coupons/getcoupons";
 import { jsPDF } from "jspdf";
 
 function Booking() {
@@ -173,6 +175,16 @@ function Booking() {
               to: "/booking",
               label: "Bookings",
               icon: "fa-calendar",
+            },
+            {
+              to: "/coupon",
+              label: "Coupon",
+              icon: "fa-coupon",
+            },
+            {
+              to: "/createCoupon",
+              label: "Create Coupon",
+              icon: "fa-coupon",
             },
             {
               to: "/cart",

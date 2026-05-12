@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import addToCart from "../../Layout/components/addToCart/addCart";
+import applyCoupon from "../../hooks/useCoupon";
 
 function Products() {
   const product_url = "http://localhost:5000/api/v1/products/list";
@@ -9,6 +10,11 @@ function Products() {
   const [products, setProducts] = useState([]);
   const [cartCount, setCartCount] = useState(0);
   const [loadingId, setLoadingId] = useState(null);
+
+  // Coupon States
+  const [couponCode, setCouponCode] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponMessage, setCouponMessage] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 10;
@@ -25,11 +31,14 @@ function Products() {
   const getCartCount = async () => {
     const token = localStorage.getItem("token");
     const cartId = localStorage.getItem("cartId");
+
     if (!token || !cartId) return;
 
     try {
       const res = await axios.get("http://localhost:5000/api/v1/cart", {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       setCartCount(res.data.items.length || 0);
@@ -51,6 +60,7 @@ function Products() {
       alert("You must login to add to cart");
       return;
     }
+
     setLoadingId(productId);
 
     try {
@@ -62,6 +72,7 @@ function Products() {
       );
 
       setCartCount(totalQty);
+
       await getProducts();
     } catch (err) {
       console.error("Add to cart failed", err);
@@ -70,8 +81,31 @@ function Products() {
     }
   };
 
+  // Apply Coupon
+  const handleApplyCoupon = async () => {
+    if (!couponCode) {
+      alert("Enter coupon code");
+      return;
+    }
+
+    setCouponLoading(true);
+
+    try {
+      const response = await applyCoupon(couponCode);
+
+      setCouponMessage(response?.message || "Coupon applied successfully");
+
+      console.log(response);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
   const indexOfLast = currentPage * productsPerPage;
   const indexOfFirst = indexOfLast - productsPerPage;
+
   const currentProducts = products.slice(indexOfFirst, indexOfLast);
 
   const totalProducts = products.length;
@@ -95,6 +129,23 @@ function Products() {
           🛒 {cartCount}
         </Link>
       </div>
+
+      {/* Coupon Section */}
+      <div className="coupon-container">
+        <input
+          type="text"
+          placeholder="Enter Coupon Code"
+          value={couponCode}
+          onChange={(e) => setCouponCode(e.target.value)}
+        />
+
+        <button onClick={handleApplyCoupon} disabled={couponLoading}>
+          {couponLoading ? "Applying..." : "Apply Coupon"}
+        </button>
+
+        {couponMessage && <p>{couponMessage}</p>}
+      </div>
+
       <div className="carts-container">
         {currentProducts.map((product) => (
           <div className="product-card" key={product._id}>
@@ -140,6 +191,7 @@ function Products() {
           Next
         </button>
       </div>
+
       <div className="show">
         Showing {startProduct} - {endProduct} of {totalProducts} products
       </div>
