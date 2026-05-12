@@ -1,11 +1,15 @@
 import { useState } from "react";
 import createCoupon from "../../hooks/createCoupon";
+import { useDebounce } from "../../hooks/useDebounce";
 
 function CreateCoupon() {
   const [discountValue, setDiscountValue] = useState("");
   const [discountType, setDiscountType] = useState("percentage");
   const [minOrderValue, setMinOrderValue] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const debouncedDiscountValue = useDebounce(discountValue, 500);
+  const debouncedMinOrderValue = useDebounce(minOrderValue, 500);
 
   const handleCreateCoupon = async (e) => {
     e.preventDefault();
@@ -15,8 +19,8 @@ function CreateCoupon() {
 
       const result = await createCoupon({
         discountType,
-        discountValue: Number(discountValue),
-        minOrderValue: Number(minOrderValue),
+        discountValue: Number(debouncedDiscountValue),
+        minOrderValue: Number(debouncedMinOrderValue),
       });
 
       console.log(result);
