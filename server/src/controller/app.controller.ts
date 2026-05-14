@@ -456,6 +456,25 @@ export class AppController {
     }
   };
 
+  static deleteCart = async (req: IRequest, res: Response): Promise<void> => {
+    try {
+      if (!req.user) {
+        res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
+        return;
+      }
+      const userId = req.user.id;
+      const cartId = req.params.cartId;
+      const response = await AppService.deleteCart(userId, cartId);
+      res.status(200).json(response);
+    } catch (error: any) {
+      res.status(500).json({
+        message: error.message,
+      });
+    }
+  };
   static removeItem = async (req: IRequest, res: Response): Promise<void> => {
     try {
       if (!req.user) {

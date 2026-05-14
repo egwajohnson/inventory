@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { FaTrash } from "react-icons/fa";
 import updateCart from "../updateCart/updateCart";
 import handlePayment from "../checkOut";
+import deleteCart from "../../hooks/deleteCart";
 
 function Cart() {
   const [cartData, setCartData] = useState(null);
@@ -67,6 +68,7 @@ function Cart() {
       <div className="cart-container">
         <div className="cent">
           <h2 className="mb-4 text-center fw-bold">🛒 Your Cart</h2>
+          <button onClick={() => deleteCart(cartItems[0]?.cartId)}>X</button>
           <div className="text-center mb-4">
             <span className="badge bg-dark">
               Cart ID: {cartData?._id || "N/A"}

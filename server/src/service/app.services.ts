@@ -826,7 +826,7 @@ export class AppService {
     const cart = await ProductRepository.updateCart(userId);
 
     if (!cart) {
-      throw new Error("Cart not found");
+      throw throwCustomError("Cart not found", 404);
     }
 
     const item = cart.items.find(
@@ -856,9 +856,25 @@ export class AppService {
     return cart;
   }
 
+  static async deleteCart(userId: Types.ObjectId, cartId: string) {
+    const user = await UserRepository.findUserById(userId);
+    if (!user) {
+      throw throwCustomError("User not found.", 404);
+    }
+
+    if (!user.position?.includes("Admin")) {
+      throw throwCustomError("Only admin users can delete carts.", 403);
+    }
+    const response = await ProductRepository.deleteCart(userId, cartId);
+    if (!response) {
+      throw throwCustomError("Cart not found or already deleted.", 404);
+    }
+    return response;
+  }
+
   static async deleteCartItem(userId: Types.ObjectId, productId: string) {
     if (!productId) {
-      throw new Error("productId is required");
+      throw throwCustomError("productId is required", 400);
     }
     console.log("productId hererer", productId);
     const del = await ProductRepository.deleteCartItem(userId, productId);

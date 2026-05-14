@@ -118,7 +118,7 @@ export class ProductRepository {
 
   static async createsaleHistory(
     productId: Types.ObjectId,
-    producName: string,
+    productName: string,
     quantity: any,
     productPrice: number,
     totalPrice: number,
@@ -127,7 +127,7 @@ export class ProductRepository {
 
     const response = await HistoryModel.create({
       productId,
-      producName,
+      productName,
       productPrice,
       quantity,
       totalPrice: total,
@@ -239,6 +239,13 @@ export class ProductRepository {
 
     return cart;
   };
+
+  static async deleteCart(userId: Types.ObjectId, cartId: string) {
+    const response = await CartModel.findOneAndDelete({
+      _id: cartId,
+    }).select("-__v");
+    return response;
+  }
 
   static async updateCart(userId: Types.ObjectId) {
     const updated = await CartModel.findOne({ userId });

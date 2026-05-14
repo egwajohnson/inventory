@@ -22,23 +22,11 @@ router.post(
   AppController.uploadProfileImage,
 );
 router.get("/user/get", authMiddleware, AppController.getUsers);
-router.delete(
-  "/user/delete/:id",
-  authMiddleware,
-  AppController.deleteUser,
-);
-router.delete(
-  "/user/email",
-  authMiddleware,
-  AppController.deleteUserByEmail,
-);
+router.delete("/user/delete/:id", authMiddleware, AppController.deleteUser);
+router.delete("/user/email", authMiddleware, AppController.deleteUserByEmail);
 router.get("/user/:id", authMiddleware, AppController.findUserById);
 router.post("/login", AppController.loginUser as any);
-router.post(
-  "/user/logout",
-  authMiddleware,
-  AppController.logoutUser as any,
-);
+router.post("/user/logout", authMiddleware, AppController.logoutUser as any);
 router.post("/user/request-otp", AppController.createOtp);
 router.post("/user/reset-password", AppController.passwordReset);
 
@@ -50,11 +38,7 @@ router.post(
   uploadMiddleware as any,
   AppController.createProduct,
 );
-router.delete(
-  "/products/:id",
-  authMiddleware,
-  AppController.deleteProduct,
-);
+router.delete("/products/:id", authMiddleware, AppController.deleteProduct);
 router.get(
   "/products/name/:productName",
   authMiddleware,
@@ -63,11 +47,7 @@ router.get(
 router.get("/products/list", AppController.getProducts);
 router.post("/product/update", AppController.updateProduct);
 router.patch("/product/update/quantity", AppController.updateProductQuantity);
-router.post(
-  "/product/sale",
-  authMiddleware,
-  AppController.saleProduct,
-);
+router.post("/product/sale", authMiddleware, AppController.saleProduct);
 
 //cart routes
 router.post(
@@ -106,6 +86,11 @@ router.get(
   "/carts/all",
   authMiddleware as any,
   AppController.getAllCarts as any,
+);
+router.delete(
+  "/cart/delete/:cartId",
+  authMiddleware as any,
+  AppController.deleteCart as any,
 );
 
 //coupon routes
