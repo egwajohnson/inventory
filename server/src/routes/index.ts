@@ -1,20 +1,21 @@
 import express from "express";
 import { AppController } from "../controller/app.controller";
+import WebhookController from "../controller/webhook.controller";
 import { uploadMiddleware } from "../middleware/uploadsMiddleware";
 import { authMiddleware } from "../middleware/auth.middleware";
 import { upload } from "../config/multer.config";
-import webHooks from "./webhooks.router";
+import webHooks from "../controller/webhook.controller";
 
 import dotenv from "dotenv";
 dotenv.config();
 
 const router = express.Router();
 
-// router.post(
-//   "/shopify/webhook",
-//   express.raw({ type: "application/json" }),
-//   webHooks,
-// );
+router.post(
+  "/paystack/webhook",
+  express.raw({ type: "application/json" }),
+  WebhookController.paystackWebhook,
+);
 
 router.post("/user/pre-register", AppController.preRegister);
 router.post(
