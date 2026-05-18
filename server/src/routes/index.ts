@@ -3,11 +3,18 @@ import { AppController } from "../controller/app.controller";
 import { uploadMiddleware } from "../middleware/uploadsMiddleware";
 import { authMiddleware } from "../middleware/auth.middleware";
 import { upload } from "../config/multer.config";
+import webHooks from "./webhooks.router";
 
 import dotenv from "dotenv";
 dotenv.config();
 
 const router = express.Router();
+
+// router.post(
+//   "/shopify/webhook",
+//   express.raw({ type: "application/json" }),
+//   webHooks,
+// );
 
 router.post("/user/pre-register", AppController.preRegister);
 router.post(

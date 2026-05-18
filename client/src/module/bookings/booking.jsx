@@ -14,7 +14,7 @@ function Booking() {
   const [paymentMethod, setPaymentMethod] = useState("cash");
 
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all"); 
 
   useEffect(() => {
     const fetchCarts = async () => {

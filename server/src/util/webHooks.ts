@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
+import { IRequest } from "../middleware/auth.middleware";
 
-const webHooks = async (req: Request, res: Response) => {
+const webHooks = async (req: IRequest, res: Response) => {
   try {
     const event = req.body;
 
